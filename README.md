@@ -1,37 +1,36 @@
-# MVP QA · AG RBB – Buzón de Sugerencias
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-MVP web para la Asociación Gremial Resonancias del Biobío (AG RBB).
+## Getting Started
 
-Este proyecto forma parte del curso **Test Automation Engineer** y tiene como objetivo construir
-un flujo completo de automatización Web + API + CI/CD sobre una aplicación real.
+First, run the development server:
 
-## Objetivo del MVP
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-- Registro y login de socios.
-- Buzón de sugerencias con CRUD básico.
-- Endpoint `/api/rag/ask` como placeholder para futura integración RAG.
-- Pruebas automatizadas de UI (Cypress) y API (Postman/Newman).
-- Pipeline CI/CD con GitHub Actions.
-- Imagen Docker básica de la aplicación.
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Stack previsto
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-- **Frontend / Fullstack:** Next.js (App Router)
-- **Auth & Base de datos:** Supabase (PostgreSQL)
-- **Pruebas UI:** Cypress
-- **Pruebas API:** Postman + Newman
-- **CI/CD:** GitHub Actions
-- **Contenedores:** Docker
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Estado del proyecto
+## Learn More
 
-> Estado: **Fase 0 – Estructura inicial del repositorio (sin código de aplicación).**
+To learn more about Next.js, take a look at the following resources:
 
-## Roadmap (Fases)
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-- **F0:** Estructura del repositorio y archivos base.
-- **F1:** Inicialización Next.js + Supabase + auth básica.
-- **F2:** Buzón de sugerencias + endpoint `/api/rag/ask`.
-- **F3:** Pruebas automatizadas UI + API.
-- **F4:** CI/CD (GitHub Actions) + Dockerfile de la app.
-- **F5:** Documentación final + guion y demo para video de presentación.
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
