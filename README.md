@@ -91,6 +91,26 @@ El diseño de la autenticación del MVP considera el siguiente flujo:
 Este flujo será implementado en fases posteriores, pero su arquitectura general queda definida en esta etapa.
 
 ---
+
+### Variables de entorno y su rol en CI/CD (Fase 4)
+
+Para mantener consistencia entre el entorno local y el pipeline de CI/CD, se definen desde esta etapa los nombres exactos de las variables que utilizará GitHub Actions como secrets:
+
+- **NEXT_PUBLIC_SUPABASE_URL**
+- **NEXT_PUBLIC_SUPABASE_ANON_KEY**
+- **SUPABASE_SERVICE_ROLE_KEY**
+
+Estas variables:
+
+1. Se documentan en `.env.example`.
+2. Sus valores reales viven en `.env.local` (no se versiona).
+3. En la Fase 4 se configurarán como **GitHub Secrets** utilizando exactamente los mismos nombres listados arriba.
+
+Definir estos nombres en Fase 1 evita renombrar variables cuando se construya el archivo de CI (`ci.yml`) y asegura un flujo de integración consistente entre desarrollo local y ejecución en GitHub Actions.
+
+Estas definiciones forman parte del diseño de Fase 1C y habilitan la correcta implementación de Fase 2 (CRUD), Fase 3 (pruebas automatizadas) y Fase 4 (CI/CD).
+
+---
 ## Roadmap de Fases
 
 | Fase | Ventana     | Foco principal                     | Entregables clave                                                      |
