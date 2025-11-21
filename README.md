@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MVP QA · AG RBB – Buzón de Sugerencias
 
-## Getting Started
+MVP web desarrollado para la Asociación Gremial Resonancias del Biobío (AG RBB).  
+Incluye registro y login de socios, un buzón de sugerencias con CRUD básico y un endpoint placeholder para `/api/rag/ask` preparado para futura integración con RAG.  
+El proyecto incorpora pruebas automatizadas (UI + API), CI/CD con GitHub Actions y un Dockerfile básico para ejecutar la aplicación en un entorno aislado.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Descripción del proyecto
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Este repositorio contiene el desarrollo del MVP que se utilizará como entrega final del curso **Test Automation Engineer**.  
+El objetivo es demostrar un flujo completo **Web + API + QA Automation + CI/CD**, utilizando tecnologías modernas y un diseño modular que pueda escalar en fases futuras.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+**Incluye:**
+- Registro y login de socios (Next.js + Supabase Auth)  
+- Buzón de sugerencias (CRUD)  
+- Endpoint placeholder `/api/rag/ask`  
+- Pruebas automatizadas (Cypress + Postman/Newman)  
+- Pipeline CI/CD con GitHub Actions  
+- Dockerfile básico para ejecución de la app  
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Stack Tecnológico
 
-To learn more about Next.js, take a look at the following resources:
+- **Next.js** – Frontend + API Routes  
+- **Supabase** – Autenticación + base de datos PostgreSQL  
+- **Cypress** – Pruebas E2E  
+- **Postman/Newman** – Pruebas de API  
+- **GitHub Actions** – CI/CD  
+- **Docker** – Contenedor básico para la aplicación  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Estado del proyecto
 
-## Deploy on Vercel
+- **Estado actual:**  
+  - **Fase 0 – Estructura inicial del repositorio (sin código todavía).**  
+  - **Fase 1 – En curso.**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Roadmap de Fases
+
+| Fase | Ventana     | Foco principal                     | Entregables clave                                                      |
+|------|-------------|------------------------------------|------------------------------------------------------------------------|
+| F0   | Día 1       | Preparar repo y entorno             | Repo creado, README v0, Node/PNPM/NPM definidos                       |
+| F1   | Días 2–5    | Base app + Supabase + Auth          | Next.js + Supabase configurados, flujo login/registro funcional básico |
+| F2   | Días 6–10   | Buzón sugerencias + `/api/rag/ask`  | CRUD sugerencias funcionando + endpoint RAG placeholder                |
+| F3   | Días 11–15  | Automatización de pruebas           | Cypress login+creación, colección Postman, scripts npm listos         |
+| F4   | Días 16–18  | CI/CD + Docker                      | GitHub Actions con lint + tests + newman, badge CI, Dockerfile app    |
+| F5   | Días 19–20  | Hardening + Docs + demo             | README pro, guía de uso, guión para video de presentación             |
+
+---
+
+## Licencia
+
+Proyecto creado para fines educativos y de experimentación en QA Automation.  
+No utilizar datos reales de socios en ambientes de prueba.
+
+---
+
+## Autor
+
+Sergio Carlos Delgado Martínez  
+Proyecto AG RBB · 2025
