@@ -12,7 +12,7 @@ Este repositorio contiene el desarrollo del MVP que se utilizará como entrega f
 El objetivo es demostrar un flujo completo **Web + API + QA Automation + CI/CD**, utilizando tecnologías modernas y un diseño modular que pueda escalar en fases futuras.
 
 **Incluye:**
-- Registro y login de socios (Next.js + Supabase Auth)  
+- Registro y login de socios (Next.js + TypeScript (App Router) + Supabase Auth)  
 - Buzón de sugerencias (CRUD)  
 - Endpoint placeholder `/api/rag/ask`  
 - Pruebas automatizadas (Cypress + Postman/Newman)  
@@ -23,7 +23,7 @@ El objetivo es demostrar un flujo completo **Web + API + QA Automation + CI/CD**
 
 ## Stack Tecnológico
 
-- **Next.js** – Frontend + API Routes  
+- **Next.js + TypeScript (App Router)** – Frontend + API Routes  
 - **Supabase** – Autenticación + base de datos PostgreSQL  
 - **Cypress** – Pruebas E2E  
 - **Postman/Newman** – Pruebas de API  
@@ -42,7 +42,7 @@ El objetivo es demostrar un flujo completo **Web + API + QA Automation + CI/CD**
 
 ## Integración Supabase – Diseño
 
-Esta sección describe la arquitectura base de integración entre Next.js y Supabase para el MVP QA · AG RBB.
+Esta sección describe la arquitectura base de integración entre Next.js + TypeScript (App Router) y Supabase para el MVP QA · AG RBB.
 
 ### Variables de entorno requeridas
 
@@ -64,14 +64,14 @@ Todas estas variables deben estar documentadas en `.env.example` y sus valores r
 El proyecto separa la responsabilidad de los clientes Supabase según el contexto donde se usan:
 
 - **Cliente público (frontend)**  
-  Ubicación prevista: `lib/supabaseClientPublic.js`  
+  Ubicación prevista: `lib/supabaseClientPublic.ts`  
   Uso esperado:  
   - Formularios de registro de socios.  
   - Formularios de login.  
   - Manejo básico de sesión en componentes de interfaz.
 
 - **Cliente de servidor (backend / API)**  
-  Ubicación prevista: `lib/supabaseServerClient.js`  
+  Ubicación prevista: `lib/supabaseServerClient.ts`  
   Uso esperado:  
   - Endpoints en `/api` para lectura y escritura de datos.  
   - CRUD de sugerencias.  
@@ -162,7 +162,7 @@ El detalle completo se encuentra en:
 | Fase | Ventana     | Foco principal                     | Entregables clave                                                      |
 |------|-------------|------------------------------------|------------------------------------------------------------------------|
 | F0   | Día 1       | Preparar repo y entorno             | Repo creado, README v0, Node/PNPM/NPM definidos                       |
-| F1   | Días 2–5    | Base app + Supabase + Auth          | Next.js + Supabase configurados, flujo login/registro funcional básico |
+| F1   | Días 2–5    | Base app + Supabase + Auth          | Next.js + TypeScript (App Router) + Supabase configurados, flujo login/registro funcional básico |
 | F2   | Días 6–10   | Buzón sugerencias + `/api/rag/ask`  | CRUD sugerencias funcionando + endpoint RAG placeholder                |
 | F3   | Días 11–15  | Automatización de pruebas           | Cypress login+creación, colección Postman, scripts npm listos         |
 | F4   | Días 16–18  | CI/CD + Docker                      | GitHub Actions con lint + tests + newman, badge CI, Dockerfile app    |
