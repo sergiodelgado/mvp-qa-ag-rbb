@@ -3,7 +3,7 @@
 
 import { FormEvent, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabaseBrowserClient } from '../../lib/supabaseClientPublic'
+import { supabaseBrowserClient } from '@/lib/supabaseClientPublic' // usa alias @/
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -28,46 +28,64 @@ export default function RegisterPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (loading) return
+
     setErrorMessage(null)
     setSuccessMessage(null)
     setLoading(true)
 
-    // 1) Crear usuario en Supabase Auth
-    const { data, error } = await supabaseBrowserClient.auth.signUp({
-      email,
-      password,
-    })
-
-    if (error || !data.user) {
-      setLoading(false)
-      setErrorMessage('No se pudo completar el registro. Revisa los datos ingresados.')
-      return
-    }
-
-    // 2) Crear registro en tabla socios
-    const userId = data.user.id
-
-    const { error: insertError } = await supabaseBrowserClient.from('socios').insert([
-      {
-        id: userId,
+    try {
+      // 1) Crear usuario en Supabase Auth
+      const { data, error } = await supabaseBrowserClient.auth.signUp({
         email,
-        nombre,
-        // rol y estado pueden quedar con valores por defecto definidos en la BD
-      },
-    ])
+        password,
+      })
 
-    setLoading(false)
+      console.log('SIGNUP RESULT:', { data, error })
 
-    if (insertError) {
-      setErrorMessage(
-        'El usuario se creó en autenticación, pero falló la creación del perfil. Contacta soporte.'
-      )
-      return
+      if (error || !data?.user) {
+        setErrorMessage(
+          `No se pudo completar el registro en Auth: ${
+            error?.message ?? 'Error desconocido'
+          }`
+        )
+        setLoading(false)
+        return
+      }
+
+      const userId = data.user.id
+
+      // 2) Crear registro en tabla socios
+      const { data: insertData, error: insertError } = await supabaseBrowserClient
+        .from('socios')
+        .insert([
+          {
+            id: userId,
+            email,
+            nombre,
+          },
+        ])
+        .select()
+
+      console.log('SOCIOS INSERT RESULT:', { insertData, insertError })
+
+      if (insertError) {
+        setErrorMessage(
+          `El usuario se creó en autenticación, pero falló la creación del perfil: ${insertError.message}`
+        )
+        setLoading(false)
+        return
+      }
+
+      // 3) Mostrar mensaje y redirigir SIEMPRE a /login
+      setSuccessMessage('Registro exitoso. Ahora puedes iniciar sesión.')
+      setLoading(false)
+      router.replace('/login')
+    } catch (e: any) {
+      console.error('ERROR REGISTRO GENERAL:', e)
+      setErrorMessage(`Error inesperado durante el registro: ${e.message ?? String(e)}`)
+      setLoading(false)
     }
-
-    // 3) Mostrar mensaje y redirigir SIEMPRE a /login
-    setSuccessMessage('Registro exitoso. Ahora puedes iniciar sesión.')
-    router.replace('/login')
   }
 
   return (
