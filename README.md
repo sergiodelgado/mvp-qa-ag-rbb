@@ -111,6 +111,52 @@ Definir estos nombres en Fase 1 evita renombrar variables cuando se construya el
 Estas definiciones forman parte del diseño de Fase 1C y habilitan la correcta implementación de Fase 2 (CRUD), Fase 3 (pruebas automatizadas) y Fase 4 (CI/CD).
 
 ---
+
+## Rutas y autenticación – Resumen
+
+El diseño detallado de rutas, modelo de datos para socios y escenarios de autenticación se encuentra documentado en la carpeta `docs/`.
+
+### Rutas principales del MVP
+
+La aplicación utiliza las siguientes rutas base:
+
+- `/` – Página inicial simple. Redirige a `/buzon` si el usuario ya está autenticado.
+- `/login` – Formulario de inicio de sesión. Si el usuario ya está autenticado, debe redirigir a `/buzon`.
+- `/register` – Formulario de registro de nuevos socios. Tras un registro exitoso, redirige siempre a `/login`.
+- `/buzon` – Pantalla principal del buzón de sugerencias (requiere autenticación).
+- `/logout` – Acción de cierre de sesión que invalida la sesión activa y redirige a `/login`.
+
+El detalle completo se encuentra en:  
+`docs/rutas.md`
+
+### Modelo de datos – Socios (resumen)
+
+El modelo mínimo de la tabla `socios` en Supabase se alinea con el sistema de autenticación:
+
+- Cada registro en `socios` corresponde a un usuario en `auth.users`.
+- El campo `id` de `socios` coincide con el `id` del usuario en Supabase Auth.
+- Para el MVP, la lógica principal utiliza los campos `id`, `email`, `nombre` y `created_at`.
+- Los campos `rol` y `estado` se incluyen para extensiones futuras, pero no se usan en la lógica de la primera versión.
+
+El diseño completo de este modelo se encuentra en:  
+`docs/modelo_socios.md`
+
+### Escenarios base de autenticación
+
+Se han definido escenarios de uso que cubren:
+
+- Registro exitoso y registro con datos inválidos.
+- Registro con email ya registrado.
+- Login exitoso y login fallido.
+- Protección de acceso a `/buzon`.
+- Cierre de sesión y persistencia de sesión tras recargar la página.
+
+Estos escenarios servirán como base para las pruebas E2E (Cypress) y pruebas de API.
+
+El detalle completo se encuentra en:  
+`docs/escenarios_auth.md`
+
+---
 ## Roadmap de Fases
 
 | Fase | Ventana     | Foco principal                     | Entregables clave                                                      |
