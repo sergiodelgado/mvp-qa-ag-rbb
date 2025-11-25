@@ -1,0 +1,1 @@
+-- Seed inicial de ejemplo para socios

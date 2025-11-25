@@ -1,0 +1,1 @@
+-- Consultas de prueba (lectura básica)

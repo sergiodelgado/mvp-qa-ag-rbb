@@ -1,0 +1,1 @@
+# Registro de migraciones aplicadas
