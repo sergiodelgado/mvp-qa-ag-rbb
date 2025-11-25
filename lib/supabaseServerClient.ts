@@ -1,1 +1,22 @@
-// Cliente de servidor de Supabase para uso en endpoints /api.
+// lib/supabaseServerClient.ts
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+
+export function getSupabaseServerClient() {
+  const cookieStore = cookies()
+
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        // En route handlers no necesitamos escribir cookies
+        set() {},
+        remove() {},
+      },
+    }
+  )
+}

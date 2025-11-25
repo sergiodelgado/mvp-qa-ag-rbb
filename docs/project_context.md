@@ -1,284 +1,131 @@
-# Proyecto: MVP QA – AG RBB · Buzón de Sugerencias
-## Archivo: project_context.md
-## Última actualización: 2025-11-25  (actualizar manualmente cada vez que cambie el estado)
+## 1. Resumen del estado actual
+
+Según la documentación disponible en Drive (README y docs/), el MVP QA – AG RBB tiene definido el diseño de rutas, modelo de datos, escenarios de autenticación y arquitectura Supabase, con roadmap por fases (F0–F5). El estado declarado es Fase 0 completada (estructura inicial) y Fase 1 en curso, sin evidencia verificable desde Drive de código de frontend, backend, pruebas ni CI/CD asociado al proyecto.
 
 ---
 
-# 1. Resumen del estado actual
+## 2. Estructura del repositorio (según Drive)
 
-Este archivo resume el estado real del proyecto a partir del código, la estructura del repositorio y la documentación existente.
+| Tipo                       | Nombre              | Comentario                                                                 |
+| -------------------------- | ------------------- | -------------------------------------------------------------------------- |
+| Carpeta/documentación      | `docs/`             | Se detectan archivos `rutas.md`, `modelo_socios.md`, `escenarios_auth.md`, `arquitectura_bd.md` asociados al MVP. |
+| Carpeta/documentación      | `prompts/`          | Documentada conceptualmente; contiene al menos `PM-MVP.md` y `AO-00.md`.   |
+| Archivo de documentación   | `README.md`         | Describe stack, roadmap por fases y diseño de Supabase y autenticación.    |
+| Carpeta esperada no localizable | `/app/`       | No se identifican archivos de páginas Next.js atribuibles al proyecto en los datos accesibles. |
+| Carpeta esperada no localizable | `/lib/`       | El diseño menciona `lib/supabaseClientPublic.ts` y `lib/supabaseServerClient.ts`, pero no se localizan sus archivos. |
+| Carpeta esperada no localizable | `/tests/`     | No se detectan carpetas ni archivos de pruebas asociados al MVP.           |
+| Carpeta esperada no localizable | `/cypress/`   | No se detectan archivos de configuración o specs de Cypress del MVP.       |
+| Carpeta esperada no localizable | `.github/workflows/` | No se observan workflows CI/CD vinculados explícitamente al proyecto. |
+| Carpeta esperada no localizable | `supabase/`   | La documentación referencia `supabase/migrations/`, pero no se localizan migraciones asociadas al MVP. |
 
-- Proyecto: **MVP QA · AG RBB – Buzón de Sugerencias**
-- Objetivo: MVP web con login/registro de socios, buzón de sugerencias y base para QA Automation + CI/CD.
-- Estado actual (alto nivel):
-  - **Fase 0 (F0)** – Estructura inicial del repo y diseño general: **completada**.
-  - **Fase 1 (F1)** – Base App + Supabase + Auth: **en curso**.
-  - Fases F2–F5: **diseñadas, pero no implementadas todavía** (CRUD, pruebas, CI/CD, Docker, docs finales).
-- Conectores externos:
-  - GitHub: repositorio `mvp-qa-ag-rbb` conectado.
-  - Vercel: **no configurado**.
-  - Linear: **no configurado**.
-  - Notion: **no configurado**.
-  - Otros conectores ChatGPT: **no utilizados por ahora**.
-
-Este contexto es la “fuente de verdad” para cualquier modelo que trabaje con el proyecto.
+> Nota: La vista de Drive no expone rutas completas; la clasificación anterior se basa en el contenido textual de los archivos y en las rutas declaradas en la propia documentación del proyecto.
 
 ---
 
-# 2. Estructura real del repositorio (vista lógica)
+## 3. Estado del frontend
 
-> Nota: esta sección debe actualizarse si cambian las carpetas principales o se agregan módulos relevantes.
-
-Estructura lógica actual (confirmada por docs y diseño):
-
-- Carpeta raíz:
-  - `README.md`
-  - `package.json`
-  - `tsconfig.json`
-  - `.env.example` (definición de variables esperadas)
-  - `.env.local` (variables reales, no versionado, solo referencia)
-
-- Aplicación:
-  - `app/`
-    - `app/page.tsx`              → Home (`/`)
-    - `app/login/page.tsx`        → Ruta `/login`
-    - `app/register/page.tsx`     → Ruta `/register`
-    - `app/buzon/page.tsx`        → Ruta `/buzon`
-    - (otras páginas o layouts podrán agregarse en fases posteriores)
-
-- Integración Supabase:
-  - `lib/`
-    - `lib/supabaseClientPublic.ts`  → Cliente público (frontend)
-    - `lib/supabaseServerClient.ts`  → Cliente de servidor (previsto / en diseño)
-
-- Documentación funcional y de QA:
-  - `docs/`
-    - `docs/rutas.md`           → Diseño detallado de rutas y reglas de acceso.
-    - `docs/modelo_socios.md`   → Diseño del modelo de datos `socios`.
-    - `docs/escenarios_auth.md` → Escenarios de autenticación para pruebas.
-
-- Pruebas automatizadas:
-  - No se han creado todavía carpetas definitivas como `cypress/` o `tests/`.  
-    (Esta sección debe actualizarse cuando se definan estructuras de testing.)
-
-- CI/CD:
-  - No existe aún `.github/workflows/ci.yml` ni otros workflows activos.
+La documentación define como rutas principales del MVP: `/`, `/login`, `/register`, `/buzon` y `/logout`, con reglas de acceso y comportamiento detalladas por ruta. No se localizan archivos de implementación en `/app/` (p. ej. `app/page.tsx`, `app/login/page.tsx`, etc.) atribuibles al proyecto en Drive, por lo que el estado real del frontend (implementado vs. solo diseñado) no es evaluable con la información disponible.
 
 ---
 
-# 3. Estado del frontend (Next.js + TypeScript)
+## 4. Estado de Supabase
 
-- Framework: **Next.js + TypeScript (App Router)**.
-- Rutas principales definidas conceptualmente:
-  - `/`        → Home simple, punto de entrada.
-  - `/login`   → Formulario de login.
-  - `/register`→ Formulario de registro.
-  - `/buzon`   → Buzón de sugerencias, requiere autenticación.
-  - `/logout`  → Acción de cierre de sesión (ruta/acción prevista).
-
-- Comportamientos clave diseñados:
-  - Usuarios autenticados deben ser redirigidos de `/` y `/login` hacia `/buzon`.
-  - Acceso a `/buzon` debe estar protegido (redirigir a `/login` si no hay sesión).
-  - Flujo lineal esperado: `register → login → buzón`.
-
-- Estado actual (supuesto basado en avances reportados):
-  - Rutas base implementadas a nivel de páginas (`app/.../page.tsx`).
-  - Lógica de redirecciones y protección aún en desarrollo.
-  - UI mínima enfocada en funcionalidad, no en diseño visual complejo.
+El diseño declara el uso de Supabase para autenticación y base de datos, con variables de entorno `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` documentadas para `.env.example`, `.env.local` y futuros GitHub Secrets. Se definen dos clientes previstos: `lib/supabaseClientPublic.ts` (frontend) y `lib/supabaseServerClient.ts` (backend / `/api`), y un modelo de tabla `socios` alineado 1:1 con `auth.users`. No se localizan archivos de configuración de Supabase (clientes TS) ni migraciones SQL en `supabase/migrations/` para este proyecto, por lo que la implementación real de la BD en el entorno Supabase no es verificable desde Drive.
 
 ---
 
-# 4. Estado de la base de datos (Supabase)
+## 5. Estado de autenticación
 
-- Proveedor: **Supabase** (PostgreSQL + Auth).
-- Variables de entorno definidas (documentadas en `.env.example`):
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - `SUPABASE_SERVICE_ROLE_KEY`
-- Claves:
-  - Claves públicas: utilizadas en el cliente de frontend (`supabaseClientPublic.ts`).
-  - Clave de service role: reservada para uso en servidor (`supabaseServerClient.ts` / endpoints `/api`).
-
-- Modelo `socios`:
-  - Definido conceptualmente en `docs/modelo_socios.md`.
-  - Campos clave previstos:
-    - `id` (uuid, igual a `auth.users.id`)
-    - `email` (text)
-    - `nombre` (text)
-    - `created_at` (timestampz, default `now()`)
-    - `rol` (text, opcional)
-    - `estado` (text, opcional)
-  - Rol:
-    - Complementar a `auth.users` con datos propios del contexto AG RBB.
-    - Relación 1:1 conceptual con `auth.users`.
-
-- Estado actual:
-  - Proyecto Supabase creado y conectado al frontend.
-  - Variables URL + ANON_KEY configuradas en entorno local.
-  - **Tabla `socios` aún no creada en la base de datos** (pendiente explícito).
-  - No se han definido aún políticas RLS ni triggers para sincronizar `auth.users` con `socios`.
+El flujo de autenticación está completamente descrito en README y en los documentos de rutas y escenarios: `register → login → buzón`, con protección de `/buzon` para usuarios autenticados y manejo de errores de login/registro. También se definen escenarios base (registro válido/inválido, email duplicado, login exitoso/fallido, persistencia de sesión y logout) como base para pruebas E2E. No se observan en Drive los componentes de implementación (formularios reales, hooks de sesión, clientes Supabase, `middleware` o layout de App Router), por lo que la autenticación está documentada pero su estado técnico (implementada o no) no es evaluable con certeza.
 
 ---
 
-# 5. Estado de autenticación
+## 6. Dependencias principales
 
-- Sistema: **Supabase Auth**.
-- Flujo general diseñado:
-  1. Registro: el usuario crea cuenta con email + password.
-  2. Creación (diseñada) del registro en `socios` asociado a `auth.users.id`.
-  3. Login: usuario autenticado accede a la app.
-  4. Redirección a `/buzon` tras login exitoso.
-  5. Logout: cierre de sesión y redirección a `/login`.
+No se ha localizado de forma inequívoca un `package.json` asociado al proyecto `mvp-qa-ag-rbb` en los archivos accesibles de Drive, por lo que no es posible listar versiones ni distinguir `dependencies` de `devDependencies` a partir de código real. Solo se dispone del stack declarado en README:
 
-- Escenarios de autenticación documentados:
-  - Registro exitoso.
-  - Registro inválido.
-  - Registro con email ya registrado.
-  - Login exitoso.
-  - Login fallido.
-  - Protección de `/buzon` para usuario no autenticado.
-  - Logout.
-  - Persistencia de sesión tras recargar.
-
-- Estado actual:
-  - Flujo de integración con Supabase Auth en desarrollo.
-  - Registro y login básicos implementados a nivel de frontend (formulario + llamada a Supabase).
-  - Creación automática de fila en `socios`: **diseñada pero no implementada aún**.
-  - Protección estricta de `/buzon` mediante middleware o guard: en diseño / pendiente.
+| Nombre            | Versión        | Tipo                    |
+| ----------------- | -------------- | ----------------------- |
+| Next.js           | No especificada | Declarada (frontend + API) |
+| TypeScript        | No especificada | Declarada (lenguaje)   |
+| Supabase          | No especificada | Declarada (Auth + DB)  |
+| Cypress           | No especificada | Declarada (E2E tests)  |
+| Postman/Newman    | No especificada | Declarada (API tests)  |
+| GitHub Actions    | No aplica      | Declarada (CI/CD)      |
+| Docker            | No aplica      | Declarada (contenedor) |
 
 ---
 
-# 6. Dependencias principales (package.json)
+## 7. Estado de pruebas
 
-> Esta sección debe sincronizarse con `package.json` cada vez que se agregue o quite una librería relevante.
-
-Dependencias previstas / utilizadas:
-
-- `next` – Framework principal.
-- `react` / `react-dom` – Librerías de UI.
-- `typescript` – Tipado estático.
-- `@supabase/supabase-js` – Cliente oficial Supabase.
-- Herramientas de desarrollo:
-  - Scripts básicos de `dev`, `build`, `start`, etc.
-
-Pendientes:
-- Instalar y configurar:
-  - `cypress` (o `@cypress/*`) para pruebas E2E.
-  - Dependencias de Postman/Newman si se integran vía CLI/Newman en CI.
-  - Cualquier librería específica para testing, mocking o herramientas de QA.
+La documentación establece que habrá pruebas UI (Cypress) y pruebas de API (Postman/Newman), basadas en los escenarios de autenticación y en el flujo del buzón de sugerencias. En los archivos accesibles desde Drive no se detectan carpetas `/tests/` o `/cypress/`, archivos `cypress.config.*` ni colecciones/versionadas de Postman asociadas al proyecto, por lo que no hay evidencia de pruebas automatizadas implementadas en este snapshot y el estado real de testeo automatizado no es evaluable.
 
 ---
 
-# 7. Estado de pruebas (QA)
+## 8. Estado de CI/CD
 
-Diseño actual:
-
-- Escenarios funcionales de autenticación definidos en `docs/escenarios_auth.md`.
-- Rutas y flujos base documentados en `docs/rutas.md`.
-- El MVP está pensado para incluir:
-  - Pruebas E2E (Cypress).
-  - Pruebas de API (Postman/Newman).
-  - Casos manuales como base.
-
-Estado actual:
-
-- Carpeta de pruebas automatizadas: **no creada**.
-- No hay aún specs E2E (`.cy.ts`) ni colecciones Postman integradas al repo.
-- QA se encuentra en etapa de **diseño conceptual**, pendiente la implementación técnica.
+El roadmap del README contempla una Fase 4 dedicada a CI/CD con GitHub Actions y Docker, incluyendo un archivo `ci.yml`, uso de GitHub Secrets y un Dockerfile básico para la aplicación. No se observan archivos `.github/workflows/*.yml` ni `Dockerfile` asociados explícitamente al proyecto en los datos accesibles vía Drive, de modo que la configuración de CI/CD y contenedores se encuentra solo en estado de diseño, no verificable como implementación.
 
 ---
 
-# 8. Estado de CI/CD y Docker
+## 9. Pendientes críticos organizados por fase
 
-Diseño (según roadmap y README):
+### Frontend
 
-- CI/CD planeado con **GitHub Actions**:
-  - Jobs previstos:
-    - Lint + typecheck.
-    - Tests (Cypress / Newman).
-    - Build de la app.
-  - Integración futura con variables de entorno como secrets:
-    - `NEXT_PUBLIC_SUPABASE_URL`
-    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-    - `SUPABASE_SERVICE_ROLE_KEY`.
+- Implementar en `/app/` las rutas documentadas (`/`, `/login`, `/register`, `/buzon`, `/logout`) respetando comportamiento y redirecciones definidas en `rutas.md`.
+- Asegurar protección efectiva de `/buzon` (guardas de ruta/redirecciones) acorde a los escenarios de autenticación.
+- Definir layout y componentes mínimos de UI orientados a pruebas (selectores estables para Cypress).
 
-- Docker:
-  - Se contempla un `Dockerfile` básico para empaquetar la app en contenedor.
+### Backend / API
 
-Estado actual:
+- Implementar endpoints previstos en `/api`, como el CRUD de sugerencias y el placeholder `/api/rag/ask`, alineados con el flujo definido en README.
+- Garantizar que los endpoints utilicen el cliente de servidor de Supabase y respeten políticas RLS de la base de datos.
 
-- `.github/workflows/` aún no existe o no contiene pipelines activos.
-- No hay `Dockerfile` operativo en el repo (aún).
-- No se ha configurado despliegue automático (ni a Vercel ni a otro proveedor).
+### DB / Supabase
 
----
+- Crear la tabla `socios` en Supabase con el esquema especificado en `modelo_socios.md` y `arquitectura_bd.md`.
+- Definir y aplicar RLS para que cada socio solo pueda acceder a sus propios registros y sugerencias.
+- Materializar migraciones en `supabase/migrations/` y mantenerlas sincronizadas con la documentación.
 
-# 9. Pendientes críticos por fase
+### Pruebas
 
-### F1 – Base app + Supabase + Auth (EN CURSO)
-- Completar flujo funcional de:
-  - `/register` creando usuario en Auth.
-  - Futuro: crear registro en `socios` (pendiente).
-  - `/login` autenticando y redirigiendo a `/buzon`.
-- Implementar redirecciones básicas según estado de sesión.
-- Verificar que variables de entorno Supabase funcionan tanto en local como en build.
+- Crear la estructura de pruebas E2E (Cypress) para los flujos de registro, login, acceso al buzón y logout, siguiendo los escenarios de autenticación definidos.
+- Definir una colección Postman/Newman mínima para validar endpoints clave de `/api` (login, CRUD de sugerencias, healthchecks).
 
-### F2 – Buzón de sugerencias + `/api/rag/ask`
-- Implementar modelo de datos para sugerencias.
-- Implementar CRUD de sugerencias:
-  - Crear, listar, actualizar, eliminar sugerencias del socio autenticado.
-- Implementar endpoint placeholder `/api/rag/ask` (sin RAG real todavía).
+### CI/CD
 
-### F3 – Automatización de pruebas (UI + API)
-- Crear estructura de pruebas E2E (Cypress).
-- Implementar escenarios de autenticación como tests.
-- Crear colección Postman y script Newman.
-- Añadir scripts npm: `test:e2e`, `test:api`, etc.
+- Configurar un workflow básico en `.github/workflows/` que ejecute lint, build, pruebas automatizadas y Newman en cada push/PR.
+- Añadir un Dockerfile reproducible para la aplicación, alineado con la configuración del pipeline.
 
-### F4 – CI/CD + Docker
-- Crear workflow de GitHub Actions:
-  - Install → Lint → Tests → Build.
-- Integrar secretos Supabase.
-- Añadir `Dockerfile` funcional y (opcional) pipeline para build de imagen.
+### Documentación
 
-### F5 – Hardening + Docs + Demo
-- Documentación final del proyecto (README “pro”).
-- Guía de uso + setup local.
-- Guión de demo en video.
+- Mantener `docs/rutas.md`, `docs/modelo_socios.md`, `docs/escenarios_auth.md` y este `docs/project_context.md` sincronizados con el estado real de código, evitando divergencias entre diseño y ejecución.
 
 ---
 
-# 10. Riesgos técnicos identificados
+## 10. Riesgos técnicos
 
-- **Sin tabla `socios` creada**:
-  - La lógica de vincular usuarios Auth con socios está solo en diseño.
-- **Sin políticas RLS definidas**:
-  - Riesgo de exposición de datos si se avanza sin restricciones.
-- **Sin test automatizados**:
-  - Cambios futuros pueden romper flujos sin ser detectados.
-- **Sin CI/CD**:
-  - No hay validación automatizada en cada push.
-- **Sin deploy configurado**:
-  - No hay entorno “real” donde ver el comportamiento del MVP.
+- Divergencia entre la documentación (que asume rutas, modelos y flujos completos) y la implementación real, al no existir evidencia de código en este snapshot basado en Drive.
+- Ausencia visible de migraciones y políticas RLS puede generar inconsistencias entre el modelo teórico de `socios` y la base de datos efectiva.
+- Falta de pruebas automatizadas verificables expone a regresiones y flakiness cuando se implemente el flujo completo de autenticación y buzón.
+- Inexistencia observable de pipelines de CI/CD y Dockerfile impide validar el comportamiento del proyecto en entornos controlados antes del despliegue.
+- Dependencia fuerte en variables de entorno y secretos sin que se verifique su uso real en código puede provocar fallos silenciosos en build o runtime.
 
 ---
 
-# 11. Próximos pasos sugeridos (técnicos)
+## 11. Próximos pasos sugeridos
 
-1. **Crear la tabla `socios` en Supabase** según `docs/modelo_socios.md`.
-2. Implementar en `/register` la creación sincronizada:
-   - Usuario en `auth.users`.
-   - Fila correspondiente en `socios`.
-3. Asegurar redirecciones:
-   - Usuario autenticado: `/` y `/login` → `/buzon`.
-   - Usuario no autenticado: `/buzon` → `/login`.
-4. Crear estructura base de pruebas:
-   - Carpeta para Cypress.
-   - Primer test: “Registro exitoso” + “Login exitoso”.
-5. Definir primer pipeline sencillo en GitHub Actions (aunque sea solo `build`).
+- Consolidar el repositorio de código (Next.js + Supabase) de forma que la estructura `/app/`, `/lib/`, `supabase/`, `/tests/` y `.github/` quede visible y auditable desde los artefactos técnicos, incluyendo su reflejo en Drive.
+- Implementar el flujo mínimo funcional `register → login → buzón` utilizando Supabase Auth y la tabla `socios`, validando contra el modelo definido.
+- Crear un primer conjunto de pruebas E2E (Cypress) y API (Postman/Newman) para los escenarios base de autenticación y acceso a `/buzon`.
+- Definir y activar al menos un pipeline simple de GitHub Actions que ejecute build + pruebas en cada push a la rama principal.
+- Completar y versionar migraciones SQL de Supabase, alineando `arquitectura_bd.md` con el estado real de la base de datos.
 
 ---
 
-# 12. Historial de revisiones
+## 12. Historial de revisiones
 
-- 2025-11-25 – Versión inicial de `project_context.md` creada a partir de la documentación del proyecto y el diseño actual.
+| Fecha      | Cambio principal                                 | Autor     |
+| ---------- | ------------------------------------------------ | --------- |
+| 2025-11-25 | Snapshot inicial generado desde archivos en Drive | CRTF Bot  |
+
