@@ -35,8 +35,10 @@ El objetivo es demostrar un flujo completo **Web + API + QA Automation + CI/CD**
 ## Estado del proyecto
 
 - **Estado actual:**  
-  - **Fase 0 – Estructura inicial del repositorio (sin código todavía).**  
-  - **Fase 1 – En curso.**
+
+- Fase 1: ✅ Autenticación + socios funcionando.
+- Fase 2: 🟡 En progreso — BD y diseño funcional listos; pendiente API + UI + QA.
+
 
 ---
 
