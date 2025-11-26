@@ -1,14 +1,17 @@
 // lib/supabaseClientPublic.ts
-import { createClient } from '@supabase/supabase-js'
+// Cliente de Supabase para el navegador (frontend) usando @supabase/ssr
+// Esto guarda la sesión en cookies compatibles con createServerClient.
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+import { createBrowserClient } from '@supabase/ssr'
 
-if (!supabaseUrl || !supabaseAnonKey) {
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+if (!url || !anonKey) {
   throw new Error(
-    'Faltan NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY en las variables de entorno'
+    'Faltan variables NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY para configurar Supabase (browser).'
   )
 }
 
-// Cliente para usar exclusivamente en el navegador (componentes con "use client")
-export const supabaseBrowserClient = createClient(supabaseUrl, supabaseAnonKey)
+// Cliente único reutilizable en toda la app
+export const supabaseBrowserClient = createBrowserClient(url, anonKey)
