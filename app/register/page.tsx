@@ -32,13 +32,23 @@ export default function RegisterPage() {
 
     setErrorMessage(null)
     setSuccessMessage(null)
+
+    const trimmedEmail = email.trim()
+    const trimmedPassword = password.trim()
+    const trimmedNombre = nombre.trim()
+
+    if (!trimmedEmail || !trimmedPassword || !trimmedNombre) {
+      setErrorMessage('Todos los campos son obligatorios')
+      return
+    }
+
     setLoading(true)
 
     try {
       // 1) Crear usuario en Supabase Auth
       const { data, error } = await supabaseBrowserClient.auth.signUp({
-        email,
-        password,
+        email: trimmedEmail,
+        password: trimmedPassword
       })
 
       console.log('SIGNUP RESULT:', { data, error })
@@ -61,9 +71,9 @@ export default function RegisterPage() {
         .insert([
           {
             id: userId,
-            email,
-            nombre,
-          },
+            email: trimmedEmail,
+            nombre: trimmedNombre
+          }
         ])
         .select()
 
@@ -99,7 +109,7 @@ export default function RegisterPage() {
           display: 'flex',
           flexDirection: 'column',
           gap: '0.75rem',
-          marginTop: '1rem',
+          marginTop: '1rem'
         }}
       >
         <label>
@@ -107,7 +117,7 @@ export default function RegisterPage() {
           <input
             type="email"
             value={email}
-            onChange={event => setEmail(event.target.value)}
+            onChange={(event) => setEmail(event.target.value)}
             required
           />
         </label>
@@ -117,7 +127,7 @@ export default function RegisterPage() {
           <input
             type="password"
             value={password}
-            onChange={event => setPassword(event.target.value)}
+            onChange={(event) => setPassword(event.target.value)}
             required
           />
         </label>
@@ -127,7 +137,7 @@ export default function RegisterPage() {
           <input
             type="text"
             value={nombre}
-            onChange={event => setNombre(event.target.value)}
+            onChange={(event) => setNombre(event.target.value)}
             required
           />
         </label>
