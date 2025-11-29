@@ -33,9 +33,11 @@ export default function LoginPage() {
 
     if (signInError) {
       console.error('Error en login:', signInError)
-      setError(
-        signInError.message ?? 'Credenciales inválidas o problema al iniciar sesión.'
-      )
+      const message = signInError.message?.toLowerCase().includes('credenciales')
+        ? signInError.message
+        : 'Credenciales inválidas o problema al iniciar sesión.'
+
+      setError(message)
       setLoading(false)
       return
     }
@@ -61,6 +63,7 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
+              name="email"
               className="w-full px-3 py-2 rounded text-black text-sm"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -75,6 +78,7 @@ export default function LoginPage() {
             <input
               id="password"
               type="password"
+              name="password"
               className="w-full px-3 py-2 rounded text-black text-sm"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
