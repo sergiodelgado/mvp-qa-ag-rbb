@@ -1,25 +1,31 @@
 # Fase 2 – Diseño funcional de sugerencias
 
-Este documento define el alcance funcional, flujos, rutas, APIs, validaciones y checklist de implementación para la Fase 2 del MVP QA – AG RBB. Se apoya en el modelo de datos de `sugerencias` (`docs/modelo_sugerencias.md`) y en la arquitectura de rutas y APIs.
+Este documento define el alcance funcional, flujos, rutas, APIs, validaciones y checklist de implementación para la Fase 2 del MVP QA – AG RBB.  
+Se apoya en el modelo de datos de `sugerencias` (`docs/modelo_sugerencias.md`), en la arquitectura de rutas (`docs/rutas_f2.md`) y en la API (`docs/api_sugerencias.md`).
 
 ---
 
 ## 1) Resumen funcional de Fase 2
 
-### Qué entregará Fase 2
+### Entregables de Fase 2
 
 - CRUD inicial centrado en **crear** y **listar** sugerencias propias del socio autenticado.
-- UI de buzón con formulario de alta y listado por fecha descendente.
-- Endpoints API REST (`/api/sugerencias`) para crear y consultar sugerencias del socio autenticado.
-- RLS que asegura que cada socio solo puede ver/crear sus propias sugerencias.
+- UI del buzón con:
+  - formulario de creación,
+  - listado ordenado por `created_at DESC`,
+  - manejo de estado vacío.
+- Endpoints API REST:
+  - `GET /api/sugerencias`
+  - `POST /api/sugerencias`
+- RLS en la tabla `sugerencias` que garantiza aislamiento por usuario.
 - Base para pruebas manuales y automatizadas (UI, API y RLS).
 
-### Qué NO incluye
+### Exclusiones
 
-- Edición o eliminación de sugerencias.
-- Moderación o flujos avanzados de estados.
-- Integración con `/api/rag/ask` o IA.
-- Funcionalidades administrativas (ver sugerencias de otros socios).
+- Edición y eliminación de sugerencias.
+- Cambios de estado avanzados.
+- Integración con `/api/rag/ask`.
+- Roles administrativos y vistas globales.
 
 ---
 
@@ -27,53 +33,68 @@ Este documento define el alcance funcional, flujos, rutas, APIs, validaciones y 
 
 ### Crear sugerencia (UI)
 
-1. Socio autenticado navega a `/buzon`.
-2. Ve formulario con campos **Título** y **Contenido**.
-3. Completa ambos campos y envía.
-4. La UI valida requeridos; si faltan, muestra error inline y no envía.
-5. Si pasa validación, llama a `POST /api/sugerencias` con el payload.
-6. Tras respuesta `201`, limpia formulario y actualiza listado.
-7. Si hay error, muestra mensaje sin perder los datos escritos.
+1. Socio autenticado abre `/buzon`.
+2. Completa los campos **Título** y **Contenido**.
+3. La UI valida que ambos campos tengan contenido.
+4. Envía `POST /api/sugerencias`.
+5. Si la API responde `201`:
+   - se limpia el formulario,
+   - se actualiza inmediatamente la lista.
+6. Si hay error:
+   - se muestra mensaje sin borrar lo ya escrito.
 
 ### Crear sugerencia (API)
 
-1. Cliente autenticado envía `POST /api/sugerencias` con `{ titulo, contenido }`.
-2. El endpoint valida payload y sesión.
-3. Inserta en `public.sugerencias` con `socio_id = user.id`.
-4. Responde `201 Created` con la sugerencia creada.
-5. Si no hay sesión o fallan validaciones/RLS, responde `400/401/403`.
+1. Cliente envía:
 
-### Listar sugerencias del socio (UI)
+```json
+{ "titulo": "...", "contenido": "..." }
+```
 
-1. Socio autenticado accede a `/buzon`.
-2. La página ejecuta `GET /api/sugerencias` al cargar.
-3. Muestra listado de sugerencias propias, ordenadas desc por `created_at`.
-4. Si no hay sugerencias, muestra estado vacío con llamada a crear la primera.
-5. Errores muestran mensaje y opción de reintentar.
+2. El handler:
+   - valida payload,
+   - obtiene `user.id` desde la cookie de Supabase,
+   - inserta en `sugerencias` (RLS lo permite solo si `socio_id = auth.uid()`),
+   - devuelve `201` con la fila creada.
 
-### Listar sugerencias del socio (API)
+3. Errores gestionados:
+   - `400` payload inválido,
+   - `401` si no hay sesión,
+   - `403` si RLS bloquea,
+   - `500` para errores inesperados.
 
-1. Cliente autenticado hace `GET /api/sugerencias`.
-2. El endpoint valida sesión y ejecuta selección filtrada por `user.id`.
-3. Devuelve `200 OK` con arreglo de sugerencias.
-4. Sin sesión o fallo RLS ⇒ `401/403`.
+### Listar sugerencias (UI)
+
+1. `/buzon` solicita `GET /api/sugerencias` al montar.
+2. La API devuelve lista propia del socio autenticado.
+3. La UI:
+   - ordena desc por `created_at`,
+   - muestra tarjetas,
+   - o estado vacío si no hay sugerencias.
+
+### Listar sugerencias (API)
+
+- Devuelve solo filas donde `socio_id = auth.uid()`.
+- Errores:
+  - `401` sin sesión,
+  - `403` si RLS bloquea.
 
 ---
 
 ## 3) Mapa de rutas y APIs
 
-### Rutas UI
+### Rutas UI (App Router)
 
-| Ruta    | Propósito                                              | Requiere sesión | Datos usados                          |
-|--------|---------------------------------------------------------|-----------------|---------------------------------------|
-| `/buzon` | Página principal del buzón (formulario + listado).      | Sí              | Perfil básico (`socios`) + API `GET`. |
+| Ruta     | Propósito                                  | Requiere sesión | Datos usados                    |
+| -------- | ------------------------------------------ | --------------- | ------------------------------- |
+| `/buzon` | Página principal del buzón (form + lista). | Sí              | Perfil básico y API GET propio. |
 
 ### Endpoints API
 
-| Método y endpoint         | Propósito                            | Payload esperado                            | Respuesta exitosa                     | Errores esperados          |
-|---------------------------|--------------------------------------|---------------------------------------------|---------------------------------------|----------------------------|
-| `POST /api/sugerencias`  | Crear sugerencia del socio actual.   | `{ titulo: string; contenido: string; }`    | `201` con sugerencia creada.          | `400`, `401`, `403`, `500` |
-| `GET /api/sugerencias`   | Listar sugerencias del socio actual. | Ninguno                                      | `200` con lista de sugerencias.       | `401`, `403`, `500`        |
+| Método y ruta           | Propósito                                      | Payload                                 | Respuesta exitosa                  | Errores                    |
+| ----------------------- | ---------------------------------------------- | --------------------------------------- | ---------------------------------- | -------------------------- |
+| `POST /api/sugerencias` | Crear sugerencia propia del socio autenticado. | `{ titulo: string, contenido: string }` | `201 Created` con registro creado. | `400`, `401`, `403`, `500` |
+| `GET /api/sugerencias`  | Listar sugerencias propias.                    | –                                       | `200 OK` con arreglo JSON.         | `401`, `403`, `500`        |
 
 ---
 
@@ -81,15 +102,17 @@ Este documento define el alcance funcional, flujos, rutas, APIs, validaciones y 
 
 ### UI
 
-- Título requerido.
-- Contenido requerido.
-- Mensajes claros en campos cuando falten.
+- Título obligatorio.
+- Contenido obligatorio.
+- Mostrar errores en la misma vista.
+- Evitar enviar requests con campos vacíos.
 
 ### API
 
-- `titulo` y `contenido` no vacíos.
-- Sesión obligatoria (`user.id` presente).
-- Operaciones siempre asociadas al `auth.uid()` vía RLS.
+- `titulo` y `contenido` deben ser strings no vacíos tras `trim()`.
+- `socio_id` se deriva del usuario autenticado.
+- Sesión obligatoria.
+- RLS exige coincidencia entre `socio_id` y `auth.uid()`.
 
 ---
 
@@ -97,30 +120,40 @@ Este documento define el alcance funcional, flujos, rutas, APIs, validaciones y 
 
 ### UI (Cypress/Playwright)
 
-- Crear sugerencia exitosa.
-- Validación de campos requeridos.
-- Redirección a `/login` si se entra a `/buzon` sin sesión.
-- Estado vacío para socio sin sugerencias.
+- Login y redirección correcta a `/buzon`.
+- Crear sugerencia válida.
+- Validación de campos vacíos (no enviar request).
+- Acceso bloqueado a `/buzon` sin sesión.
+- Estado vacío para usuarios nuevos.
 
 ### API (Postman/Supertest)
 
-- `POST` válido con sesión.
-- `POST` sin sesión (`401`).
-- `POST` con payload inválido (`400`).
-- `GET` propio.
-- `GET` sin sesión (`401`).
+- `GET` con sesión devuelve solo sugerencias propias.
+- `POST` válido devuelve `201`.
+- `POST` inválido devuelve `400`.
+- Acceso sin sesión devuelve `401`.
 
-### RLS (SQL)
+### SQL (RLS)
 
-- `select` devuelve solo sugerencias del propio `auth.uid()`.
-- `insert` con `socio_id != auth.uid()` bloqueado.
+- `SELECT` solo muestra filas donde `socio_id = auth.uid()`.
+- `INSERT` bloqueado si `new.socio_id != auth.uid()`.
 
 ---
 
 ## 6) Checklist de implementación
 
-- [ ] Verificar migraciones de `sugerencias` en Supabase.
-- [ ] Implementar `POST` y `GET` en `/app/api/sugerencias/route.ts`.
-- [ ] Conectar `/buzon` a la API: formulario + listado.
-- [ ] Probar manualmente crear/listar.
-- [ ] Añadir pruebas UI, API y RLS a la pipeline de QA.
+- [x] Migraciones de `sugerencias` creadas y aplicadas en Supabase.
+- [x] RLS activado y políticas configuradas.
+- [x] Implementación de `GET` y `POST` en `/app/api/sugerencias/route.ts`.
+- [x] Conexión UI ↔ API en `/buzon`.
+- [x] Pruebas manuales:
+  - Crear sugerencia
+  - Listar sugerencias
+  - Validación de campos
+  - Acceso sin sesión
+
+- [ ] Suite UI F3 (Cypress) — por implementar.
+- [ ] Suite API F3b (Postman/Newman) — por implementar.
+- [ ] Pruebas RLS — por implementar en SQL o CI.
+
+---

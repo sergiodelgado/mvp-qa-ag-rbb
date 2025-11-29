@@ -1,87 +1,102 @@
 # Modelo de datos: tabla `socios`
 
-Este documento define el modelo mínimo de la tabla `socios` en Supabase para el MVP QA · AG RBB. La tabla `socios` representa el perfil básico asociado a cada usuario autenticado en Supabase Auth.
+Este documento define el modelo real de la tabla `socios` en Supabase, tal como está implementado en el MVP QA · AG RBB. La tabla contiene el perfil básico asociado a cada usuario autenticado en Supabase Auth.
 
 ---
 
 ## 1. Rol de la tabla `socios`
 
-- La autenticación se gestiona mediante **Supabase Auth**, que almacena usuarios en `auth.users`.
-- La tabla `socios` complementa esa información con datos específicos del contexto AG RBB.
-- Cada fila en `socios` corresponde a exactamente un usuario autenticado.
+- Supabase Auth gestiona la autenticación y almacena usuarios en `auth.users`.
+- La tabla `socios` complementa esa información con campos propios del proyecto.
+- La aplicación utiliza `socios` para mostrar datos del perfil en el buzón.
 
-Relación conceptual:
+Relación real:
 
-auth.users (Supabase Auth) 1 ─── 1 socios
+`auth.users` 1 ─── 0..1 `socios`
+
+Una fila en `socios` existe solo si el registro fue creado vía la página `/register`.
+
+---
 
 ## 2. Definición de campos
 
 Tabla: `socios`
 
-| Campo        | Tipo     | Obligatorio | Descripción                                                                 |
-|--------------|----------|-------------|-----------------------------------------------------------------------------|
-| `id`         | uuid     | Sí          | Identificador del socio. Igual al `id` del usuario en `auth.users`.         |
-| `email`      | text     | Sí          | Correo del socio.                                                           |
-| `nombre`     | text     | Sí          | Nombre o alias que se mostrará en el buzón.                                |
-| `created_at` | timestampz| Sí          | Fecha de creación del registro. Default: `now()`.                           |
-| `rol`        | text     | No          | Rol del socio. MVP: siempre `socio`. Reservado para futuras versiones.      |
-| `estado`     | text     | No          | Estado del socio (`activo`/`inactivo`). No usado en el MVP.                 |
+| Campo        | Tipo        | Obligatorio | Descripción                                              |
+| ------------ | ----------- | ----------- | -------------------------------------------------------- |
+| `id`         | uuid        | Sí          | Igual al `id` del usuario en `auth.users`.               |
+| `email`      | text        | Sí          | Correo del socio.                                        |
+| `nombre`     | text        | Sí          | Nombre que se muestra en la interfaz.                    |
+| `created_at` | timestamptz | Sí          | Fecha de creación. Default: `now()`.                     |
+| `rol`        | text        | No          | Rol del socio. Default: `socio`. Reservado para futuro.  |
+| `estado`     | text        | No          | Estado del socio. Default: `activo`. No usado en el MVP. |
 
 ---
 
 ## 3. Uso en el MVP
 
-Para la primera versión funcional, la aplicación sólo utilizará activamente:
+La aplicación solo consume activamente:
 
 - `id`
 - `email`
 - `nombre`
-- `created_at`
 
-Los campos `rol` y `estado` se incluyen **solo para extensibilidad futura** pero:
+Estos campos permiten:
 
-- No participan en la lógica del MVP.
-- No afectan los flujos de registro, login o buzón.
-- No deben generar validaciones adicionales en esta fase.
+- Mostrar saludo personalizado en `/buzon`
+- Asociar sugerencias al usuario autenticado
+- Trazabilidad mínima para QA
 
----
-
-## 4. Reglas de coherencia con Supabase Auth
-
-Para garantizar la integridad entre `auth.users` y `socios`:
-
-1. Cada vez que se crea un usuario vía Auth, debe crearse una fila correspondiente en `socios`.
-2. `socios.id` **debe ser siempre igual** al `id` generado por `auth.users`.
-3. No debe existir un socio sin un usuario correspondiente en Auth.
-4. `email` debe mantenerse sincronizado con el email principal del usuario en Auth.
-
-Esta lógica se implementará en Fase 2 usando:
-- Un endpoint `/api/socios/create`
-  o
-- Una Policy + Trigger SQL en Supabase  
-(según el diseño que se elija).
+Los campos `rol` y `estado` existen por diseño extensible, pero no afectan el MVP.
 
 ---
 
-## 5. Consideraciones para QA
+## 4. Reglas implementadas (RLS)
 
-Los tests de autenticación asumirán:
+La tabla `socios` tiene RLS activado con las siguientes políticas:
 
-- Que `socios` contiene **1 fila por usuario autenticado**.
-- Que el campo `nombre` aparece en UI (ej. “Bienvenido, Sergio”).
-- Que el flujo de registro crea:
-  - usuario en `auth.users`;
-  - fila correspondiente en `socios`.
+- **select:** cada usuario puede leer únicamente su propia fila (`auth.uid() = id`)
+- **insert:** los usuarios solo pueden insertarse a sí mismos
+- **update:** cada usuario puede actualizar solo su propia fila
 
-Para evitar flakiness, **todas las pruebas deben usar correos únicos por test**.
+Estas políticas están definidas en:
+
+supabase/migrations/001_socios.sql
+
+---
+
+## 5. Flujo real de creación del socio
+
+El MVP utiliza este flujo:
+
+1. El usuario se registra vía `/register`.
+2. Supabase Auth crea el usuario en `auth.users`.
+3. El frontend inserta manualmente la fila correspondiente en `socios`.
+4. El usuario es redirigido a `/login`.
+
+**No existe trigger automático ni endpoint dedicado para crear perfiles.**
 
 ---
 
-## 6. Pendientes para Fase 2
+## 6. Consideraciones QA (Fase 3)
 
-- Crear efectivamente la tabla `socios` en Supabase.
-- Definir RLS para que:
-  - el socio sólo pueda leer/modificar su propio registro.
-- Implementar el punto de creación automática del registro en `socios`.
+Las pruebas deben asumir:
+
+- El registro crea:
+  - un usuario en Auth
+  - y una fila en `socios`
+- Si el insert en `socios` falla, la app usa fallback con `auth.users.email`.
+- El campo `nombre` es visible en UI.
+- Cada test debe usar correos únicos para evitar colisiones en Auth.
 
 ---
+
+## 7. Estado del modelo
+
+✔ Tabla creada  
+✔ RLS aplicada  
+✔ Insert manual vía `/register`  
+✘ No existen triggers automáticos (por diseño del MVP)  
+✘ No existen endpoints `/api/socios` (no necesarios en F1/F2)
+
+El modelo se considera **cerrado** para Fase 1 y Fase 2.
