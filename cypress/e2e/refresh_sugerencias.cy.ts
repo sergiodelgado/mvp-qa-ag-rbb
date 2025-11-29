@@ -43,28 +43,66 @@ describe('Buzón de Sugerencias - actualización de lista', () => {
   })
 
   it('muestra mensaje de error cuando /api/sugerencias responde 500 al refrescar', () => {
-    // 1) Dejamos que la primera carga sea real (sin intercept especial)
     cy.intercept('GET', '/api/sugerencias').as('getSugerenciasInicial')
 
     loginAndGoToBuzon()
-
     cy.wait('@getSugerenciasInicial')
 
-    // 2) Para el REFRESCO, simulamos un error 500
-    cy.intercept('GET', '/api/sugerencias', {
-      statusCode: 500,
-      body: {}
-    }).as('getSugerenciasError')
+    // Guardamos cuántos items hay antes del error
+    cy.get('ul li').then(($itemsAntes) => {
+      const cantidadAntes = $itemsAntes.length
 
-    cy.contains('Actualizar lista').click()
+      // Para el REFRESCO, simulamos un error 500
+      cy.intercept('GET', '/api/sugerencias', {
+        statusCode: 500,
+        body: {}
+      }).as('getSugerenciasError')
 
-    cy.wait('@getSugerenciasError')
+      cy.contains('Actualizar lista').click()
+      cy.wait('@getSugerenciasError')
 
-    // El componente setea sugerenciasError = "No se pudieron cargar las sugerencias."
-    cy.contains('No se pudieron cargar las sugerencias.').should('exist')
+      // Mensaje de error esperado
+      cy.contains('No se pudieron cargar las sugerencias.').should('exist')
+
+      // La lista NO debería vaciarse por el error
+      cy.get('ul li').should('have.length', cantidadAntes)
+    })
   })
 
-  // Futuro: probar comportamiento ante 401 (sesión vencida) usando intercept
-  // y validando redirección a /login. Lo dejamos para una subfase más enfocada
-  // en flujos de expiración de sesión.
+  it('redirige a /login si /api/sugerencias responde 401 al refrescar', () => {
+    cy.intercept('GET', '/api/sugerencias').as('getSugerenciasInicial')
+
+    loginAndGoToBuzon()
+    cy.wait('@getSugerenciasInicial')
+
+    // Para el refresco, respondemos 401
+    cy.intercept('GET', '/api/sugerencias', {
+      statusCode: 401,
+      body: { message: 'No hay sesión activa.' }
+    }).as('getSugerencias401')
+
+    cy.contains('Actualizar lista').click()
+    cy.wait('@getSugerencias401')
+
+    cy.url().should('include', '/login')
+  })
+
+  it('muestra "Cargando sugerencias..." mientras se cargan las sugerencias iniciales', () => {
+    // Simulamos latencia en la primera carga
+    cy.intercept('GET', '/api/sugerencias', (req) => {
+      req.on('response', (res) => {
+        res.setDelay(1000)
+      })
+    }).as('getSugerenciasLentas')
+
+    loginAndGoToBuzon()
+
+    // Mientras no llega la respuesta, debe verse el texto de carga
+    cy.contains('Cargando sugerencias...').should('exist')
+
+    cy.wait('@getSugerenciasLentas')
+
+    // Luego debería desaparecer
+    cy.contains('Cargando sugerencias...').should('not.exist')
+  })
 })
