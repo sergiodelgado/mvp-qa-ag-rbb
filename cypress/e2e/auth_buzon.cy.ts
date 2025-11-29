@@ -1,9 +1,6 @@
 // cypress/e2e/auth_buzon.cy.ts
 
-// V1: credenciales de prueba hardcodeadas.
-// Más adelante se pueden mover a cypress.env.json o variables de entorno.
-const EMAIL_VALID = 'test@example.com'
-const PASSWORD_VALID = 'Test1234!'
+import { EMAIL_VALID, PASSWORD_VALID } from '../support/credentials'
 
 describe('Auth y acceso al Buzón de Sugerencias', () => {
   beforeEach(() => {
