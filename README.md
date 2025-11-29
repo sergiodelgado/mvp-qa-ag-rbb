@@ -12,33 +12,56 @@ Este repositorio contiene el desarrollo del MVP que se utilizará como entrega f
 El objetivo es demostrar un flujo completo **Web + API + QA Automation + CI/CD**, utilizando tecnologías modernas y un diseño modular que pueda escalar en fases futuras.
 
 **Incluye:**
-- Registro y login de socios (Next.js + TypeScript (App Router) + Supabase Auth)  
-- Buzón de sugerencias (CRUD)  
-- Endpoint placeholder `/api/rag/ask`  
-- Pruebas automatizadas (Cypress + Postman/Newman)  
-- Pipeline CI/CD con GitHub Actions  
-- Dockerfile básico para ejecución de la app  
+
+- Registro y login de socios (Next.js + TypeScript (App Router) + Supabase Auth)
+- Buzón de sugerencias (CRUD)
+- Endpoint placeholder `/api/rag/ask`
+- Pruebas automatizadas (Cypress + Postman/Newman)
+- Pipeline CI/CD con GitHub Actions
+- Dockerfile básico para ejecución de la app
 
 ---
 
 ## Stack Tecnológico
 
-- **Next.js + TypeScript (App Router)** – Frontend + API Routes  
-- **Supabase** – Autenticación + base de datos PostgreSQL  
-- **Cypress** – Pruebas E2E  
-- **Postman/Newman** – Pruebas de API  
-- **GitHub Actions** – CI/CD  
-- **Docker** – Contenedor básico para la aplicación  
+- **Next.js + TypeScript (App Router)** – Frontend + API Routes
+- **Supabase** – Autenticación + base de datos PostgreSQL
+- **Cypress** – Pruebas E2E
+- **Postman/Newman** – Pruebas de API
+- **GitHub Actions** – CI/CD
+- **Docker** – Contenedor básico para la aplicación
 
 ---
 
 ## Estado del proyecto
 
-- **Estado actual:**  
+- **Estado actual:**
 
-- Fase 1: ✅ Autenticación + socios funcionando.
-- Fase 2: 🟡 En progreso — BD y diseño funcional listos; pendiente API + UI + QA.
+## Estado de Fases MVP QA – AG RBB
 
+- **F1 – Inicializar proyecto Next.js + Supabase** ✅
+  - Proyecto Next.js 16 configurado.
+  - Supabase conectado (Auth + tabla `socios` con RLS).
+  - Flujo de registro/login/logout funcionando.
+
+- **F2 – Buzón de sugerencias** ✅
+  - Tabla `sugerencias` en Supabase con RLS por `socio_id = auth.uid()`.
+  - Endpoint `GET/POST /api/sugerencias` implementado y documentado.
+  - Página `/buzon` protegida:
+    - muestra saludo con nombre/email del socio,
+    - formulario para crear sugerencias,
+    - listado de sugerencias propias.
+  - Documentos clave:
+    - `docs/rutas_f2.md`
+    - `docs/api_sugerencias.md`
+    - `docs/qa_f2.md`
+
+Próximas fases:
+
+- **F3 – Pruebas UI (Cypress)** ⏳
+- **F3b – Pruebas API** ⏳
+- **F4 – CI/CD + Docker** ⏳
+- **F5 – Docs + Demo** ⏳
 
 ---
 
@@ -67,16 +90,16 @@ El proyecto separa la responsabilidad de los clientes Supabase según el context
 
 - **Cliente público (frontend)**  
   Ubicación prevista: `lib/supabaseClientPublic.ts`  
-  Uso esperado:  
-  - Formularios de registro de socios.  
-  - Formularios de login.  
+  Uso esperado:
+  - Formularios de registro de socios.
+  - Formularios de login.
   - Manejo básico de sesión en componentes de interfaz.
 
 - **Cliente de servidor (backend / API)**  
   Ubicación prevista: `lib/supabaseServerClient.ts`  
-  Uso esperado:  
-  - Endpoints en `/api` para lectura y escritura de datos.  
-  - CRUD de sugerencias.  
+  Uso esperado:
+  - Endpoints en `/api` para lectura y escritura de datos.
+  - CRUD de sugerencias.
   - Integraciones futuras con RAG utilizando el endpoint `/api/rag/ask`.
 
 Esta separación asegura que las claves privadas permanezcan protegidas y que las operaciones sensibles se manejen exclusivamente del lado del servidor.
@@ -85,9 +108,9 @@ Esta separación asegura que las claves privadas permanezcan protegidas y que la
 
 El diseño de la autenticación del MVP considera el siguiente flujo:
 
-1. **Registro:** El socio crea su cuenta ingresando email y contraseña.  
-2. **Login:** El usuario inicia sesión utilizando credenciales válidas.  
-3. **Acceso al buzón:** Tras autenticar, se redirige al usuario a la interfaz del buzón de sugerencias.  
+1. **Registro:** El socio crea su cuenta ingresando email y contraseña.
+2. **Login:** El usuario inicia sesión utilizando credenciales válidas.
+3. **Acceso al buzón:** Tras autenticar, se redirige al usuario a la interfaz del buzón de sugerencias.
 4. **Logout:** El usuario cierra sesión y es redirigido a la página de login.
 
 Este flujo será implementado en fases posteriores, pero su arquitectura general queda definida en esta etapa.
@@ -159,16 +182,17 @@ El detalle completo se encuentra en:
 `docs/escenarios_auth.md`
 
 ---
+
 ## Roadmap de Fases
 
-| Fase | Ventana     | Foco principal                     | Entregables clave                                                      |
-|------|-------------|------------------------------------|------------------------------------------------------------------------|
-| F0   | Día 1       | Preparar repo y entorno             | Repo creado, README v0, Node/PNPM/NPM definidos                       |
-| F1   | Días 2–5    | Base app + Supabase + Auth          | Next.js + TypeScript (App Router) + Supabase configurados, flujo login/registro funcional básico |
-| F2   | Días 6–10   | Buzón sugerencias + `/api/rag/ask`  | CRUD sugerencias funcionando + endpoint RAG placeholder                |
-| F3   | Días 11–15  | Automatización de pruebas           | Cypress login+creación, colección Postman, scripts npm listos         |
-| F4   | Días 16–18  | CI/CD + Docker                      | GitHub Actions con lint + tests + newman, badge CI, Dockerfile app    |
-| F5   | Días 19–20  | Hardening + Docs + demo             | README pro, guía de uso, guión para video de presentación             |
+| Fase | Ventana    | Foco principal                     | Entregables clave                                                                                |
+| ---- | ---------- | ---------------------------------- | ------------------------------------------------------------------------------------------------ |
+| F0   | Día 1      | Preparar repo y entorno            | Repo creado, README v0, Node/PNPM/NPM definidos                                                  |
+| F1   | Días 2–5   | Base app + Supabase + Auth         | Next.js + TypeScript (App Router) + Supabase configurados, flujo login/registro funcional básico |
+| F2   | Días 6–10  | Buzón sugerencias + `/api/rag/ask` | CRUD sugerencias funcionando + endpoint RAG placeholder                                          |
+| F3   | Días 11–15 | Automatización de pruebas          | Cypress login+creación, colección Postman, scripts npm listos                                    |
+| F4   | Días 16–18 | CI/CD + Docker                     | GitHub Actions con lint + tests + newman, badge CI, Dockerfile app                               |
+| F5   | Días 19–20 | Hardening + Docs + demo            | README pro, guía de uso, guión para video de presentación                                        |
 
 ---
 
