@@ -8,6 +8,7 @@ import { supabaseServerClient } from '@/lib/supabaseServerClient'
 // Lista las sugerencias del usuario autenticado, ordenadas por created_at desc
 export async function GET(_req: NextRequest) {
   try {
+    // OJO: aquí va el await
     const supabase = await supabaseServerClient()
 
     const {
@@ -16,10 +17,7 @@ export async function GET(_req: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json(
-        { message: 'No hay sesión activa.' },
-        { status: 401 }
-      )
+      return NextResponse.json({ message: 'No hay sesión activa.' }, { status: 401 })
     }
 
     const { data, error } = await supabase
@@ -39,10 +37,7 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json(data ?? [], { status: 200 })
   } catch (err) {
     console.error('Error inesperado en GET /api/sugerencias:', err)
-    return NextResponse.json(
-      { message: 'Error interno del servidor.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Error interno del servidor.' }, { status: 500 })
   }
 }
 
@@ -50,6 +45,7 @@ export async function GET(_req: NextRequest) {
 // Crea una nueva sugerencia para el usuario autenticado
 export async function POST(req: NextRequest) {
   try {
+    // Y aquí también: await
     const supabase = await supabaseServerClient()
 
     const {
@@ -58,13 +54,10 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json(
-        { message: 'No hay sesión activa.' },
-        { status: 401 }
-      )
+      return NextResponse.json({ message: 'No hay sesión activa.' }, { status: 401 })
     }
 
-    const body = await req.json().catch(() => null) as {
+    const body = (await req.json().catch(() => null)) as {
       titulo?: string
       contenido?: string
     } | null
@@ -110,9 +103,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(data, { status: 201 })
   } catch (err) {
     console.error('Error inesperado en POST /api/sugerencias:', err)
-    return NextResponse.json(
-      { message: 'Error interno del servidor.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ message: 'Error interno del servidor.' }, { status: 500 })
   }
 }

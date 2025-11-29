@@ -13,6 +13,7 @@ if (!url || !anonKey) {
   )
 }
 
+// OJO: función async + await cookies()
 export async function supabaseServerClient() {
   const cookieStore = await cookies()
 
