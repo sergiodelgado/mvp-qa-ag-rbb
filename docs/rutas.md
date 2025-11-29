@@ -1,18 +1,23 @@
-# Rutas del MVP QA · AG RBB – Buzón de Sugerencias
+# Rutas base del MVP QA · AG RBB (Fase 1)
 
-Este documento define las rutas principales de la aplicación, su propósito y las reglas de acceso. Sirve como base para el desarrollo de la interfaz, la implementación de autenticación y el diseño de pruebas (manuales y automatizadas).
+Este documento define únicamente las rutas fundamentales implementadas en **Fase 1** del proyecto: autenticación, navegación base y acceso inicial al buzón.  
+El comportamiento extendido del buzón de sugerencias y sus APIs forma parte de **Fase 2** y se documenta en `rutas_f2.md`.
+
+> Nota  
+> Este archivo cubre solo las rutas esenciales del MVP antes del CRUD de sugerencias.  
+> Para todo lo relacionado con _crear_ o _listar_ sugerencias, ver `docs/rutas_f2.md`.
 
 ---
 
-## 1. Rutas principales
-
-Las rutas definidas para el MVP son:
+## 1. Rutas principales (Fase 1)
 
 - `/`
 - `/login`
 - `/register`
-- `/buzon`
-- `/logout` (o acción equivalente mediante botón/enlace en la interfaz)
+- `/buzon` _(versión base, sin CRUD en F1)_
+- `/logout`
+
+Estas rutas constituyen el flujo mínimo de autenticación y navegación antes de la implementación del buzón funcional de sugerencias.
 
 ---
 
@@ -20,105 +25,85 @@ Las rutas definidas para el MVP son:
 
 ### 2.1 `/` (Home)
 
-- **Acceso:** Usuario no autenticado y usuario autenticado.
-- **Comportamiento esperado:**
-  - Si el usuario **no está autenticado**, puede ver una página simple con información básica del proyecto y enlaces a:
-    - `/login`
-    - `/register`
-  - Si el usuario **está autenticado**, debe ser redirigido automáticamente a `/buzon`.
-- **Rol en el MVP:**
-  - Punto de entrada genérico a la aplicación.
-  - No contiene lógica de negocio propia.
+- **Acceso:** Público.
+- **Comportamiento (F1):**
+  - Usuario sin sesión: ve información básica + enlaces a `/login` y `/register`.
+  - Usuario con sesión activa: redirige automáticamente a `/buzon`.
+- **Rol:** Punto de entrada genérico.
 
 ---
 
 ### 2.2 `/login`
 
-- **Acceso:** Usuario no autenticado (y redirección automática si ya está autenticado).
-- **Comportamiento esperado:**
-  - Si el usuario **no está autenticado**:
-    - Se muestra un formulario con:
-      - Email
-      - Password
-    - Si las credenciales son válidas:
-      - El usuario inicia sesión.
-      - Es redirigido a `/buzon`.
-    - Si las credenciales son inválidas:
-      - No se inicia sesión.
-      - Se muestra un mensaje de error claro.
-  - Si el usuario **ya está autenticado**:
-    - No se muestra el formulario de login.
-    - El usuario es redirigido directamente a `/buzon`.
-- **Rol en el MVP:**
-  - Punto principal de acceso para usuarios ya registrados.
-  - Referencia directa para pruebas de UI (Cypress) y flujos de autenticación.
+- **Acceso:** Público (solo usuarios sin sesión).
+- **Comportamiento (F1):**
+  - Formulario de email y contraseña.
+  - Ingreso válido → redirección a `/buzon`.
+  - Ingreso inválido → mensaje de error.
+  - Usuario ya autenticado → redirección automática a `/buzon`.
+- **Rol:** Punto principal de autenticación.
 
 ---
 
 ### 2.3 `/register`
 
-- **Acceso:** Usuario no autenticado.
-- **Comportamiento esperado:**
-  - Muestra un formulario con:
-    - Email
-    - Password
-    - Nombre o alias del socio
-  - Si los datos son válidos:
-    - Se crea el usuario en el sistema de autenticación (Supabase Auth).
-    - Se crea el registro correspondiente en la tabla `socios`.
-    - El usuario es redirigido **siempre** a `/login`.
-  - Si los datos son inválidos:
-    - No se crea el usuario.
-    - No se crea ningún registro en `socios`.
-    - Se muestra un mensaje de error.
-- **Rol en el MVP:**
-  - Responsable de iniciar el flujo de vida de un socio en el sistema.
-  - Mantiene un flujo lineal: `register → login → buzón`.
+- **Acceso:** Público (solo usuarios sin sesión).
+- **Comportamiento (F1):**
+  - Formulario con `email`, `password`, `nombre`.
+  - Registro exitoso:
+    - Crea usuario en Supabase Auth.
+    - Crea registro en tabla `socios`.
+    - Redirige siempre a `/login`.
+  - Registro inválido: muestra error.
+- **Rol:** Inicio del ciclo de vida del socio.
 
 ---
 
 ### 2.4 `/buzon`
 
-- **Acceso:** Solo usuario autenticado.
-- **Comportamiento esperado:**
-  - Si el usuario **no está autenticado**:
-    - Cualquier intento de acceder a `/buzon` debe redirigir a `/login`.
-  - Si el usuario **está autenticado**:
-    - Debe ver sus propias sugerencias (en Fase 2, cuando se implemente el CRUD).
-    - En futuras fases se mostrarán acciones de:
-      - Crear nueva sugerencia.
-      - Editar o eliminar sugerencias propias.
-- **Rol en el MVP:**
-  - Es la pantalla principal de la aplicación una vez que el usuario ha iniciado sesión.
-  - Es el destino por defecto después de un login exitoso.
+- **Acceso:** Solo usuarios autenticados.
+- **Comportamiento (F1):**
+  - Usuario sin sesión → redirección a `/login`.
+  - Usuario autenticado → ve una versión inicial del buzón (placeholder).
+- **Importante:**
+  - La funcionalidad completa (crear y listar sugerencias) pertenece a Fase 2.  
+    Para esos detalles ver `docs/rutas_f2.md`.
+- **Rol:** Destino post-login y área protegida principal.
 
 ---
 
-### 2.5 `/logout` (o acción equivalente)
+### 2.5 `/logout`
 
-- **Acceso:** Solo usuario autenticado.
-- **Comportamiento esperado:**
-  - La acción de logout solo debe estar visible para usuarios autenticados.
-  - Al activar la acción de logout:
-    - Se cierra la sesión del usuario.
-    - Se invalidan las credenciales activas.
-    - El usuario es redirigido **siempre** a `/login`.
-  - Si por cualquier motivo un usuario no autenticado invoca la ruta/acción de logout:
-    - El sistema puede tratarla como una operación vacía y redirigir a `/login`.
-- **Rol en el MVP:**
-  - Permitir que el usuario cierre sesión de forma explícita.
-  - Punto importante para pruebas de flujo completo de autenticación.
+- **Acceso:** Usuarios autenticados.
+- **Comportamiento (F1):**
+  - Ejecuta `signOut`.
+  - Limpia sesión/cookies.
+  - Redirige siempre a `/login`.
+- **Rol:** Cierre explícito de sesión.
 
 ---
 
-## 3. Resumen de reglas de acceso
+## 3. Resumen de reglas de acceso (F1)
 
-| Ruta      | Usuario no autenticado                         | Usuario autenticado                     |
-|----------|-------------------------------------------------|-----------------------------------------|
-| `/`      | Acceso permitido                                | Redirigir a `/buzon`                    |
-| `/login` | Acceso permitido, muestra formulario            | Redirigir a `/buzon`                    |
-| `/register` | Acceso permitido                             | Normalmente no necesaria; se puede redirigir a `/buzon` o no mostrar enlace |
-| `/buzon` | Redirigir a `/login`                            | Acceso permitido                        |
-| `/logout` | No visible / no relevante para no autenticado  | Acceso permitido, ejecuta cierre de sesión y redirige a `/login` |
+| Ruta        | Sin sesión                | Con sesión                     |
+| ----------- | ------------------------- | ------------------------------ |
+| `/`         | Acceso permitido          | Redirige a `/buzon`            |
+| `/login`    | Acceso permitido          | Redirige a `/buzon`            |
+| `/register` | Acceso permitido          | Puede redirigir a `/buzon`     |
+| `/buzon`    | Redirige a `/login`       | Acceso permitido               |
+| `/logout`   | No visible / no relevante | Redirige a `/login` tras salir |
 
-Este diseño sirve de referencia estable para el desarrollo de la interfaz, la lógica de autenticación y la definición de casos de prueba.
+---
+
+## 4. Relación con Fase 2 (nota de cierre)
+
+La funcionalidad completa del buzón de sugerencias, incluyendo:
+
+- formulario de creación
+- listado del socio
+- conexión con `/api/sugerencias`
+- RLS en `sugerencias`
+
+está detallada en **`docs/rutas_f2.md`** y no forma parte de este documento.
+
+Este archivo queda como referencia base de navegación y autenticación del MVP.
