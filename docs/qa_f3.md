@@ -4,9 +4,13 @@
 
 **MVP QA – AG RBB · Buzón de Sugerencias**
 
-Este documento describe el alcance, configuración y evidencia de la **Fase 3 (QA UI con Cypress)** para el MVP del **Buzón de Sugerencias** de AG RBB.
+Este documento describe el alcance, configuración y evidencia de la **Fase 3 (QA UI con Cypress)** para el MVP del **Buzón de Sugerencias**.
 
-Se enfoca en **pruebas end-to-end de interfaz** sobre la aplicación real (Next.js + Supabase), usando el backend y las reglas de negocio existentes.
+Las pruebas son **end-to-end de interfaz** sobre la aplicación real (**Next.js + Supabase**), usando:
+
+- UI real (`/login`, `/buzon`)
+- Backend real (`/api/sugerencias`)
+- RLS activas en Supabase sobre `socios` y `sugerencias`
 
 ---
 
@@ -14,28 +18,29 @@ Se enfoca en **pruebas end-to-end de interfaz** sobre la aplicación real (Next.
 
 Cobertura UI E2E sobre:
 
-- Registro y login (flujo básico)
+- Registro y login (flujo básico de acceso)
 - Acceso protegido a rutas
 - Flujo principal del buzón de sugerencias:
   - carga inicial de sugerencias propias
   - creación de nuevas sugerencias
-  - validaciones de campos
+  - validaciones de campos en el formulario
   - refresco manual de la lista
-  - manejo de errores en carga/refresh
+  - manejo de errores de backend en carga/refresh (500)
   - manejo de sesión expirada (401) en la UI
+  - estados de carga (“Cargando sugerencias…”) y botón (“Actualizando…”)
 
-> **Nota:**  
-> Esta fase NO cubre aún:
->
-> - actualización/edición de sugerencias,
-> - eliminación de sugerencias,
-> - pruebas de API puras (sin navegador),
-> - validación directa de políticas RLS en la base de datos.  
->   Eso se aborda en **F3b (API tests)** y fases posteriores.
+Fuera de alcance en F3 (se dejan explícitos para F3b+):
+
+- Actualización/edición de sugerencias
+- Eliminación de sugerencias
+- Pruebas de API puras (sin navegador)
+- Validación directa de políticas RLS en la base de datos (multiusuario / manipulación de `socio_id`)
 
 ---
 
 # 2. Estructura Cypress
+
+Estructura relevante:
 
 cypress/
 e2e/
@@ -44,240 +49,404 @@ sugerencias.cy.ts
 refresh_sugerencias.cy.ts
 fixtures/
 support/
+credentials.ts
 cypress.config.ts
 
-Las pruebas se apoyan en:
+Rol de cada spec:
 
 cypress/e2e/auth_buzon.cy.ts → login y protección de /buzon
 
-cypress/e2e/sugerencias.cy.ts → creación y validación de formulario
+cypress/e2e/sugerencias.cy.ts → flujo del formulario de sugerencias (crear + validaciones)
 
-cypress/e2e/refresh_sugerencias.cy.ts → carga/refresh y manejo de errores
+cypress/e2e/refresh_sugerencias.cy.ts → carga inicial, refresh, estados de carga y manejo de errores/401
 
-3. Especificación de specs implementados
-   3.1 auth_buzon.cy.ts
+3. Specs implementados
 
-Prueba login y protección de rutas.
+3.1 auth_buzon.cy.ts
+Prueba login y protección de rutas del buzón.
 
 Test Descripción
-✔ login exitoso → /buzon Autenticación válida y redirección correcta.
-✔ login inválido muestra error Manejo consistente de errores (“Credenciales…”).
-✔ acceso a /buzon sin sesión redirige a /login Protección de ruta en la UI.
+login exitoso redirige a /buzon Con EMAIL_VALID / PASSWORD_VALID desde support/credentials, el usuario pasa de /login a /buzon y ve “Buzón de sugerencias”.
+login inválido mantiene al usuario en /login y muestra error Con contraseña incorrecta, el usuario permanece en /login y se muestra un mensaje de error que contiene la palabra “credenciales”.
+no permite acceder a /buzon sin sesión (redirige a /login) Acceder directo a /buzon sin sesión redirige a /login.
 
-Contrato funcional cubierto:
+Contratos cubiertos (Auth + acceso protegido):
 
 Solo usuarios con credenciales válidas acceden a /buzon.
 
-Errores de autenticación son visibles en la UI.
+Los errores de autenticación son visibles en la UI.
 
-Intentar acceder a /buzon sin sesión envía de vuelta a /login.
+Intentar acceder a /buzon sin sesión redirige a /login.
 
 3.2 sugerencias.cy.ts
-
-Flujo principal del formulario del buzón.
+Prueba el flujo principal del formulario del buzón.
 
 Test Descripción
-✔ crear sugerencia válida Formulario válido → POST exitoso → formulario limpio → sugerencia visible en la lista.
-✔ no enviar con campos vacíos Valida campos, muestra error, no intenta POST.
+permite crear una sugerencia válida y verla en el listado Tras login, se completa #titulo y #contenido, se envía el formulario y el título único aparece en el listado de sugerencias.
+no permite enviar sugerencia vacía y muestra mensaje de error Con #titulo y #contenido vacíos, se hace submit y aparece el mensaje “Título y contenido son obligatorios.” en la UI.
 
-Contrato funcional cubierto:
+Contratos cubiertos (Formulario):
 
-No se permite enviar sugerencias vacías.
+Una sugerencia válida se refleja en el listado del buzón.
 
-Una sugerencia válida:
+Sugerencias vacías no se envían y muestran el mensaje de error esperado.
 
-gatilla un POST a /api/sugerencias,
-
-se refleja en el listado,
-
-limpia los campos del formulario.
+La validación de campos vacíos se hace en UI (antes de llamar a la API).
 
 3.3 refresh_sugerencias.cy.ts
-
-Control específico de carga y refresco de lista.
+Pruebas específicas de carga y refresco de la lista, y manejo de errores.
 
 Test Descripción
-✔ refrescar lista llama GET nuevamente Botón “Actualizar lista” dispara una nueva llamada GET.
-✔ error 500 mantiene lista previa + muestra error UI estable ante errores 500 en refresh (lista no se borra).
-✔ sesión expirada (401) redirige a /login Un 401 en refresh provoca redirección a /login.
-✔ estado “Cargando sugerencias…” en carga inicial Validación del indicador de carga inicial con latencia.
+vuelve a llamar a /api/sugerencias al presionar "Actualizar lista" Intercepta GET /api/sugerencias, verifica llamada inicial al entrar a /buzon, luego hace click en “Actualizar lista” y se observa una segunda llamada. Además verifica que el botón muestre “Actualizando…” durante el fetch y vuelva a “Actualizar lista” al finalizar.
+muestra mensaje de error cuando /api/sugerencias responde 500 al refrescar Tras una carga inicial exitosa, el refresco se intercepta con 500. La UI muestra “No se pudieron cargar las sugerencias.” y mantiene la cantidad de items en el listado.
+redirige a /login si /api/sugerencias responde 401 al refrescar En el refresco se simula respuesta 401 con body { message: 'No hay sesión activa.' } y la UI redirige a /login.
+muestra "Cargando sugerencias..." mientras se cargan las sugerencias iniciales El primer GET /api/sugerencias se intercepta con latencia. Durante la espera aparece el texto “Cargando sugerencias...” y desaparece cuando la respuesta llega.
 
-Contrato funcional cubierto:
+Contratos cubiertos (Lista + refresh):
 
-La lista inicial se obtiene desde /api/sugerencias.
+La lista inicial se carga desde /api/sugerencias.
 
-El botón “Actualizar lista” vuelve a llamar al endpoint.
+El botón “Actualizar lista” vuelve a llamar a /api/sugerencias.
 
-Ante error 500:
+Durante el refresco se muestra “Actualizando…” en el botón.
 
-la UI muestra un mensaje de error,
+Los errores 500 en refresh muestran mensaje de error y no vacían la lista.
 
-la lista existente no se pierde.
+Los 401 en refresh redirigen a /login.
 
-Ante 401 (sesión expirada):
+Durante la carga inicial con latencia se muestra “Cargando sugerencias…”.
 
-la UI redirige al login.
+4. Comandos para ejecutar las pruebas
+   Desde la raíz del repositorio:
 
-Ante latencia:
+4.1 Modo interactivo
+bash
+Copiar código
+npx cypress open
+Seleccionar:
 
-se muestra “Cargando sugerencias…” mientras se esperan datos.
+cypress/e2e/auth_buzon.cy.ts
 
-4. Comando para ejecutar pruebas (headless)
+cypress/e2e/sugerencias.cy.ts
 
-Desde la raíz del repositorio:
+cypress/e2e/refresh_sugerencias.cy.ts
 
-npx cypress run --spec cypress/e2e/auth_buzon.cy.ts,cypress/e2e/sugerencias.cy.ts,cypress/e2e/refresh_sugerencias.cy.ts
+4.2 Modo headless
+
+npx cypress run --spec \
+ cypress/e2e/auth_buzon.cy.ts,\
+ cypress/e2e/sugerencias.cy.ts,\
+ cypress/e2e/refresh_sugerencias.cy.ts
 
 Salida esperada (resumen):
 
 Specs: 3
 Tests: 9
 All specs passed!
-
-Este comando se usará como base para integrar Cypress en CI en la Fase 4 (CI/CD).
-En este documento solo se declara la forma de ejecución, no el pipeline específico.
+Este comando es la base para integrar Cypress en CI (Fase 4 · CI/CD).
 
 5. Requisitos de ejecución
    5.1 Entorno local
+   Node.js 20+ / 22+
 
-Node 20+ / 22+
+Dependencias instaladas:
 
-Variables en .env.local configuradas:
+npm install
+Variables en .env.local:
 
 NEXT_PUBLIC_SUPABASE_URL
 
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-SUPABASE_SERVICE_ROLE_KEY (no usada directamente en UI tests)
+SUPABASE_SERVICE_ROLE_KEY
+(usada por el backend; las pruebas UI no la llaman directamente, pero la API sí).
 
 Supabase configurado con:
 
-tablas socios y sugerencias,
+tabla socios
 
-RLS activo para ambas tablas,
+tabla sugerencias
 
-migraciones ejecutadas.
+RLS activas en ambas tablas
+
+migraciones ejecutadas:
+
+004_create_sugerencias.sql
+
+005_rls_policies_sugerencias.sql
+
+006_indexes_sugerencias.sql
 
 5.2 Usuario para pruebas
-
-Debe existir un usuario válido creado manualmente:
+Debe existir un usuario válido en Auth y socios, utilizado en los specs via EMAIL_VALID y PASSWORD_VALID:
 
 email: test@example.com
 password: Test1234!
 
-Este usuario se utiliza en los specs como credencial de login para los flujos del buzón.
+En cypress/support/credentials.ts se definen las constantes:
+
+EMAIL_VALID
+
+PASSWORD_VALID
+
+que deben corresponder a estas credenciales.
 
 5.3 Servidor local
+La app debe estar corriendo en http://localhost:3000:
 
-Cypress requiere la app corriendo en http://localhost:3000:
-
+bash
+Copiar código
 npm run dev
+En cypress.config.ts se debe configurar baseUrl a http://localhost:3000 para que las rutas /login y /buzon funcionen sin prefijo.
 
-6. Contrato funcional válido en F3
-   6.1 UI (buzón)
+6. Contrato funcional validado en F3 (UI)
+   6.1 Login y rutas protegidas
+   /login:
 
-Botón “Actualizar lista”:
+Con credenciales válidas (EMAIL_VALID, PASSWORD_VALID) redirige a /buzon.
 
-estado normal → muestra “Actualizar lista”,
+Con contraseña inválida:
 
-durante fetch de refresh → muestra “Actualizando…”.
+se mantiene la URL /login,
 
-Formulario de sugerencias:
+se muestra un mensaje de error que contiene “credenciales”.
 
-solo envía si título y contenido tienen texto no vacío (trimmed),
+/buzon:
 
-en éxito:
+Acceso directo sin sesión válida:
 
-limpia campos,
+la UI redirige a /login (validado por auth_buzon.cy.ts).
 
-agrega la nueva sugerencia al listado,
+Acceso tras login válido:
 
-en error:
+se muestra el título “Buzón de sugerencias”.
 
-no limpia campos,
+6.2 Buzón de sugerencias (UI)
+Comportamiento observado y probado:
 
-muestra mensaje de error en la UI.
+Carga inicial de sugerencias:
+
+Tras validar sesión y perfil, la página llama a GET /api/sugerencias.
+
+Mientras se espera respuesta y no hay datos:
+
+se muestra “Cargando sugerencias...”.
+
+Cuando llega la respuesta:
+
+desaparece el mensaje,
+
+se puebla el listado (o se cae en estado vacío si no hay filas).
 
 Estado vacío:
 
-si el usuario no tiene sugerencias, la UI muestra un mensaje de vacío (sin romper el layout).
+Si no hay sugerencias (sugerencias.length === 0), sin error ni carga:
 
-6.2 API + comportamiento observado desde UI
+se muestra el mensaje:
+“Aún no has registrado sugerencias. Parte creando la primera arriba.”
 
-Esta sección describe el contrato de comportamiento tal como se observa desde la UI.
-Las pruebas de API directas se definen en F3b.
+Botón “Actualizar lista”:
 
-/api/sugerencias:
+En estado normal:
 
-GET y POST requieren sesión válida.
+muestra el texto “Actualizar lista”.
 
-GET devuelve solo sugerencias del usuario autenticado.
+Al hacer click:
 
-POST crea una sugerencia asociada al usuario autenticado.
+dispara un nuevo GET /api/sugerencias.
 
-Ante 401:
+mientras loadingSugerencias está activo, el botón muestra “Actualizando…”.
 
-la UI redirige a /login desde /buzon.
+Al terminar:
 
-Ante 500 en GET de refresh:
+vuelve a mostrar “Actualizar lista”.
 
-la UI muestra un mensaje de error,
+Errores al refrescar lista:
 
-mantiene la lista previa.
+Si GET /api/sugerencias responde 500 en el refresh:
 
-RLS:
+la UI muestra “No se pudieron cargar las sugerencias.”
 
-La UI trabaja bajo el supuesto de que las políticas RLS impiden:
+la lista previa de <li> se mantiene (no se borra).
 
-leer sugerencias de otros usuarios,
+Si responde 401 (sesión expirada):
 
-escribir sugerencias con un socio_id distinto al del usuario.
+la UI redirige a /login.
 
-La verificación directa de RLS se aborda en:
+6.3 Formulario de sugerencias (UI)
+Comportamiento observado y probado:
 
-migraciones de Supabase (infra),
+Los campos usan IDs:
 
-pruebas de API (F3b).
+#titulo
+
+#contenido
+
+Validación básica:
+
+Si ambos campos se dejan vacíos y se hace submit:
+
+no se debe enviar una sugerencia,
+
+se muestra el mensaje:
+
+“Título y contenido son obligatorios.”
+
+Flujo feliz de creación:
+
+Con #titulo y #contenido con texto:
+
+el formulario hace POST /api/sugerencias desde la UI.
+
+la respuesta exitosa agrega la nueva sugerencia al inicio de la lista (BuzonPage).
+
+el título único usado en la prueba (“Sugerencia Cypress {timestamp}”) aparece en el listado.
+
+(La limpieza de campos tras éxito está implementada en el componente, pero en F3 los specs solo validan la presencia en lista, no el valor vacío explícito de los inputs.)
+
+6.4 API + RLS (desde la perspectiva UI en F3)
+La UI trabaja contra /api/sugerencias, implementado en app/api/sugerencias/route.ts, y se apoya en RLS:
+
+GET /api/sugerencias:
+
+Requiere sesión válida (auth.getUser()).
+
+En caso de no haber sesión:
+
+responde 401 { message: 'No hay sesión activa.' }.
+
+En caso de éxito:
+
+responde 200 con un array JSON de objetos:
+
+id, titulo, contenido, estado, created_at.
+
+RLS (sugerencias_select_own) garantiza que solo se devuelven filas con socio_id = auth.uid().
+
+POST /api/sugerencias:
+
+Requiere sesión válida.
+
+Body esperado:
+
+titulo: string
+
+contenido: string
+
+Validaciones:
+
+body inválido o tipos incorrectos → 400 con mensaje
+"Payload inválido. Se requiere titulo y contenido."
+
+titulo/contenido vacíos tras trim() → 400 con mensaje
+"Titulo y contenido son obligatorios."
+
+En éxito:
+
+inserta una fila en public.sugerencias con:
+
+socio_id = user.id (usuario autenticado),
+
+estado y created_at desde defaults de BD.
+
+devuelve 201 con:
+
+id, titulo, contenido, estado, created_at.
+
+En error de BD:
+
+responde 500 con mensaje genérico de error.
+
+RLS en sugerencias (migraciones):
+
+ENABLE ROW LEVEL SECURITY en public.sugerencias.
+
+Política de lectura:
+
+sql
+Copiar código
+create policy "sugerencias_select_own"
+on public.sugerencias
+for select
+using ( auth.uid() = socio_id );
+Política de inserción:
+
+sql
+Copiar código
+create policy "sugerencias_insert_own"
+on public.sugerencias
+for insert
+with check ( auth.uid() = socio_id );
+En F3, estas reglas se validan indirectamente (via UI + E2E).
+La verificación directa (multiusuario, payload malicioso, etc.) se realiza en F3b (API tests).
 
 7. Checklist QA F3 (UI) – Estado actual
-   Item Estado
-   Specs UI Cypress creados ✔
-   Pruebas happy-path login + buzón ✔
-   Validaciones de formulario de sugerencias ✔
-   Manejo de errores en refresh (500) ✔
-   Manejo de sesión expirada (401) ✔
-   Estado de carga inicial de sugerencias ✔
-   Ejecución headless reproducible ✔
-   Documentación de F3 (este archivo) ✔
+   Ítem Estado Comentario breve
+   Specs UI Cypress creados (auth_buzon, sugerencias, refresh_sugerencias) ✔ 3 archivos E2E claramente separados por responsabilidad.
+   Pruebas happy-path login + acceso a /buzon ✔ Login válido → /buzon.
+   Validación de errores de login ✔ (texto frágil) Busca “credenciales” en mensaje. Se puede robustecer con data-testid.
+   Validaciones de formulario de sugerencias (campos vacíos) ✔ Mensaje “Título y contenido son obligatorios.” validado.
+   Creación de sugerencia válida (reflejada en listado) ✔ Verifica aparición del título creado.
+   Manejo de errores en refresh (500) ✔ Mensaje mostrado y lista previa preservada.
+   Manejo de sesión expirada (401) en refresh ✔ Refresh 401 → redirect a /login.
+   Estado de carga inicial (Cargando sugerencias...) ✔ Validado con latencia simulada.
+   Botón “Actualizar lista” / “Actualizando…” ✔ Cambio de texto comprobado.
+   Ejecución headless reproducible (npx cypress run --spec ...) ✔ Comando documentado y usado como base para CI.
+   Documentación de F3 (este archivo) ✔ Alcance, estructura, contrato y evidencias descritos.
+   Manejo de errores al crear sugerencias (400/500 backend) ◐ Implementado en código, pero aún sin test UI específico de error.
 
-Limitaciones conscientes en F3 (UI):
+8. Limitaciones conscientes en F3 (UI)
+   No hay cobertura UI sobre update/delete de sugerencias.
 
-No hay cobertura UI sobre update/delete de sugerencias.
+No se prueban explícitamente:
 
-No se validan aún respuestas de API en detalle (payload exacto, headers, etc.).
+respuestas 400/500 de POST /api/sugerencias desde la UI (se asume manejo por mensajes).
 
-No se testean explícitamente las políticas RLS a nivel de base de datos.
+No se prueban escenarios multiusuario desde UI:
 
-8. Próximo paso: F3b (API Tests · Postman/Newman)
+la validación de RLS (filtrado por socio_id) se delega a F3b (API) y a las migraciones.
 
-La siguiente fase de QA se centra en pruebas de API y verificación más directa del contrato de datos:
+No se validan aún:
+
+headers HTTP,
+
+estructura completa de payload de respuesta,
+
+ni tiempos de respuesta como SLOs (se asume entorno de desarrollo estable).
+
+9. Próximo paso: F3b (API Tests · Postman/Newman)
+   La siguiente fase se centra en pruebas de API y verificación directa del contrato de datos y RLS para /api/sugerencias.
+
+Escenarios clave a cubrir en docs/qa_f3b.md:
 
 GET /api/sugerencias
+200: lista de sugerencias propias (estructura exacta del array).
 
-200: lista de sugerencias propias
+200: usuario sin sugerencias → [].
 
-401: sin sesión
+401: sin sesión / token inválido → { message: 'No hay sesión activa.' }.
 
-validación de filtrado (no aparecen sugerencias de otros usuarios)
+Multiusuario:
+
+Usuario A no ve sugerencias de B (RLS efectiva).
 
 POST /api/sugerencias
+201: creación válida:
 
-201: creación válida
+body con titulo y contenido produce una fila con socio_id = auth.uid().
 
-400: body inválido (sin título/contenido)
+400: body inválido o tipos incorrectos:
 
-401: sin sesión
+payload sin titulo/contenido,
 
-403 (o equivalente): intentos que violen reglas RLS
+tipos no string.
 
-Estos escenarios se documentarán en docs/qa_f3b.md y se implementarán con Postman/Newman y CI/CD en fases siguientes.
+400: titulo y contenido solo espacios (trim() vacío).
+
+401: sin sesión / token inválido.
+
+500: fallo en inserción (RLS restrictiva / constraints) → error controlado.
+
+Los resultados de F3b se documentarán en un archivo separado (por ejemplo, docs/qa_f3b.md) y se integrarán con CI/CD en fases posteriores.
+
+---
