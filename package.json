@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:run": "cypress run",
+    "test:api:f3b": "newman run postman/mvp-ag-rbb-buzon.postman_collection.json -e postman/mvp-ag-rbb-local.postman_environment.json --folder \"10 – GET /api/sugerencias\" --folder \"20 – POST /api/sugerencias\""
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -25,6 +26,7 @@
     "eslint-config-next": "16.0.3",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "newman": "^6.2.0"
   }
 }

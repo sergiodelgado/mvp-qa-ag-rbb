@@ -1,0 +1,183 @@
+{
+  "info": {
+    "name": "MVP QA · AG RBB – Buzón · API F3b",
+    "_postman_id": "7a4c8f52-2c41-4ae3-9b77-1234567890ab",
+    "description": "Colección inicial para pruebas API F3b del endpoint /api/sugerencias.\n\nF3b · V0: solo escenarios sin sesión (401) para GET y POST.\nLos escenarios autenticados, RLS y validaciones avanzadas se agregarán en iteraciones posteriores.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 – Auth / Tokens",
+      "item": [
+        {
+          "name": "Login usuario A (placeholder)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["auth", "v1", "token"],
+              "query": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{TEST_EMAIL_A}}\",\n  \"password\": \"{{TEST_PASSWORD_A}}\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Placeholder para futura lógica de tokens Supabase.",
+                  "// En F3b V0 no se usa este request en Newman."
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10 – GET /api/sugerencias",
+      "item": [
+        {
+          "name": "GET sin sesión → 401",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 401\", function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test(\"Body contiene mensaje 'No hay sesión activa.'\", function () {",
+                  "  var jsonData;",
+                  "  try {",
+                  "    jsonData = pm.response.json();",
+                  "  } catch (e) {",
+                  "    pm.expect.fail(\"Respuesta no es JSON válido\");",
+                  "  }",
+                  "  pm.expect(jsonData).to.have.property('message');",
+                  "  pm.expect(jsonData.message).to.include('No hay sesión activa');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "20 – POST /api/sugerencias",
+      "item": [
+        {
+          "name": "POST sin sesión → 401",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Test F3b sin sesión\",\n  \"contenido\": \"Contenido de prueba sin sesión\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 401\", function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test(\"Body contiene mensaje 'No hay sesión activa.'\", function () {",
+                  "  var jsonData;",
+                  "  try {",
+                  "    jsonData = pm.response.json();",
+                  "  } catch (e) {",
+                  "    pm.expect.fail(\"Respuesta no es JSON válido\");",
+                  "  }",
+                  "  pm.expect(jsonData).to.have.property('message');",
+                  "  pm.expect(jsonData.message).to.include('No hay sesión activa');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "30 – RLS (placeholder)",
+      "item": [
+        {
+          "name": "Escenarios RLS (lectura/escritura) – aún no implementados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Placeholder: aquí se agregarán tests multiusuario para RLS (API-11, API-12).",
+                  "// En F3b V0 este request no se usa en la ejecución automatizada."
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
