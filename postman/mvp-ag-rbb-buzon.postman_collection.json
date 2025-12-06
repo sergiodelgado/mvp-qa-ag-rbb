@@ -1,386 +1,604 @@
 {
-	"info": {
-		"_postman_id": "e06329f3-cbc8-41d6-a6ff-eb6cad16fbee",
-		"name": "MVP QA · AG RBB – Buzón · API F3b",
-		"description": "Colección inicial para pruebas API F3b del endpoint /api/sugerencias.\n\nF3b · V0: solo escenarios sin sesión (401) para GET y POST.  \nLos escenarios autenticados, RLS y validaciones avanzadas se agregarán en iteraciones posteriores.",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "50445768",
-		"_collection_link": "https://sergiodelgadom-9944007.postman.co/workspace/3cc5d051-1ec5-481a-8f65-6ea2cb442260/collection/50445768-e06329f3-cbc8-41d6-a6ff-eb6cad16fbee?action=share&source=collection_link&creator=50445768"
-	},
-	"item": [
-		{
-			"name": "00 – Auth / Tokens",
-			"item": [
-				{
-					"name": "Login usuario A (placeholder)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const json = pm.response.json();",
-									"",
-									"// Validaciones mínimas",
-									"pm.test(\"Status 200 OK\", () => pm.response.code === 200);",
-									"",
-									"pm.test(\"access_token existe\", () => {",
-									"  pm.expect(json.access_token).to.exist;",
-									"  pm.expect(json.access_token.length).to.be.greaterThan(20);",
-									"});",
-									"",
-									"pm.test(\"refresh_token existe\", () => {",
-									"  pm.expect(json.refresh_token).to.exist;",
-									"  pm.expect(json.refresh_token.length).to.be.greaterThan(20);",
-									"});",
-									"",
-									"// Guardar tokens en el environment activo",
-									"pm.environment.set(\"ACCESS_TOKEN_A\", json.access_token);",
-									"pm.environment.set(\"REFRESH_TOKEN_A\", json.refresh_token);",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "apikey",
-								"value": "{{SUPABASE_ANON_KEY}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{TEST_EMAIL_A}}\",\n  \"password\": \"{{TEST_PASSWORD_A}}\"\n}\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
-							"host": [
-								"{{SUPABASE_URL}}"
-							],
-							"path": [
-								"auth",
-								"v1",
-								"token"
-							],
-							"query": [
-								{
-									"key": "grant_type",
-									"value": "password"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Login usuario B",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"const json = pm.response.json();",
-									"",
-									"// Guardar tokens en environment",
-									"pm.environment.set('ACCESS_TOKEN_B', json.access_token);",
-									"pm.environment.set('REFRESH_TOKEN_B', json.refresh_token);",
-									"",
-									"// Validaciones mínimas",
-									"pm.test('Status 200 OK', () => pm.response.code === 200);",
-									"pm.test('access_token existe', () => json.access_token && json.access_token.length > 20);",
-									"pm.test('refresh_token existe', () => json.refresh_token && json.refresh_token.length > 20);",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						},
-						{
-							"listen": "prerequest",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "apikey",
-								"value": "{{SUPABASE_ANON_KEY}}",
-								"type": "text"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"email\": \"{{TEST_EMAIL_B}}\",\n  \"password\": \"{{TEST_PASSWORD_B}}\"\n}\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
-							"host": [
-								"{{SUPABASE_URL}}"
-							],
-							"path": [
-								"auth",
-								"v1",
-								"token"
-							],
-							"query": [
-								{
-									"key": "grant_type",
-									"value": "password"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "10 – GET /api/sugerencias",
-			"item": [
-				{
-					"name": "GET sin sesión → 401",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code es 401\", function () {",
-									"  pm.response.to.have.status(401);",
-									"});",
-									"",
-									"pm.test(\"Body contiene mensaje 'No hay sesión activa.'\", function () {",
-									"  var jsonData;",
-									"  try {",
-									"    jsonData = pm.response.json();",
-									"  } catch (e) {",
-									"    pm.expect.fail(\"Respuesta no es JSON válido\");",
-									"  }",
-									"  pm.expect(jsonData).to.have.property('message');",
-									"  pm.expect(jsonData.message).to.include('No hay sesión activa');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{BASE_URL}}/api/sugerencias",
-							"host": [
-								"{{BASE_URL}}"
-							],
-							"path": [
-								"api",
-								"sugerencias"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GET listar sugerencias socio A",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status 200 OK\", () => pm.response.code === 200);\r",
-									"\r",
-									"pm.test(\"Respuesta es un array\", () => {\r",
-									"    const json = pm.response.json();\r",
-									"    pm.expect(Array.isArray(json)).to.be.true;\r",
-									"});\r",
-									"\r",
-									"pm.test(\"Cada sugerencia tiene campos clave\", () => {\r",
-									"    const json = pm.response.json();\r",
-									"    json.forEach(item => {\r",
-									"        pm.expect(item).to.have.property(\"titulo\");\r",
-									"        pm.expect(item).to.have.property(\"contenido\");\r",
-									"        pm.expect(item).to.have.property(\"estado\");\r",
-									"    });\r",
-									"});\r",
-									""
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{BASE_URL}}/api/sugerencias",
-							"host": [
-								"{{BASE_URL}}"
-							],
-							"path": [
-								"api",
-								"sugerencias"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "20 – POST /api/sugerencias",
-			"item": [
-				{
-					"name": "POST sin sesión → 401",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code es 401\", function () {",
-									"  pm.response.to.have.status(401);",
-									"});",
-									"",
-									"pm.test(\"Body contiene mensaje 'No hay sesión activa.'\", function () {",
-									"  var jsonData;",
-									"  try {",
-									"    jsonData = pm.response.json();",
-									"  } catch (e) {",
-									"    pm.expect.fail(\"Respuesta no es JSON válido\");",
-									"  }",
-									"  pm.expect(jsonData).to.have.property('message');",
-									"  pm.expect(jsonData.message).to.include('No hay sesión activa');",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {},
-								"requests": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"titulo\": \"Sugerencia F3b desde Postman\",\n  \"contenido\": \"Probando flujo autenticado del socio A.\"\n}\n\n",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{API_BASE_URL}}/sugerencias",
-							"host": [
-								"{{API_BASE_URL}}"
-							],
-							"path": [
-								"sugerencias"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "30 – RLS (placeholder)",
-			"item": [
-				{
-					"name": "Escenarios RLS (lectura/escritura) – aún no implementados",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Placeholder: aquí se agregarán tests multiusuario para RLS (API-11, API-12).",
-									"// En F3b V0 este request no se usa en la ejecución automatizada."
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{API_BASE_URL}}/sugerencias",
-							"host": [
-								"{{API_BASE_URL}}"
-							],
-							"path": [
-								"sugerencias"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		}
-	]
+  "info": {
+    "_postman_id": "e06329f3-cbc8-41d6-a6ff-eb6cad16fbee",
+    "name": "MVP QA · AG RBB – Buzón · API F3b",
+    "description": "Colección inicial para pruebas API F3b del endpoint /api/sugerencias.\n\nF3b · V0: solo escenarios sin sesión (401) para GET y POST.\nF3b · V1: incluye ahora escenarios autenticados básicos (201) y validaciones 400.\nLos escenarios avanzados de RLS y errores 500 se completarán en iteraciones posteriores.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "50445768",
+    "_collection_link": "https://sergiodelgadom-9944007.postman.co/workspace/3cc5d051-1ec5-481a-8f65-6ea2cb442260/collection/50445768-e06329f3-cbc8-41d6-a6ff-eb6cad16fbee?action=share&source=collection_link&creator=50445768"
+  },
+  "item": [
+    {
+      "name": "00 – Auth / Tokens",
+      "item": [
+        {
+          "name": "Login usuario A (placeholder)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "// Validación de status",
+                  "pm.test(\"Status 200 OK\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Validaciones mínimas de tokens",
+                  "pm.test(\"access_token existe\", () => {",
+                  "  pm.expect(json.access_token).to.exist;",
+                  "  pm.expect(json.access_token).to.be.a(\"string\");",
+                  "  pm.expect(json.access_token.length).to.be.greaterThan(20);",
+                  "});",
+                  "",
+                  "pm.test(\"refresh_token existe\", () => {",
+                  "  pm.expect(json.refresh_token).to.exist;",
+                  "  pm.expect(json.refresh_token).to.be.a(\"string\");",
+                  "  // Umbral relajado, opcional:",
+                  "  pm.expect(json.refresh_token.length).to.be.greaterThan(5);",
+                  "});",
+                  "",
+                  "// Guardar tokens en el environment activo",
+                  "pm.environment.set(\"ACCESS_TOKEN_A\", json.access_token);",
+                  "pm.environment.set(\"REFRESH_TOKEN_A\", json.refresh_token);",
+                  "",
+                  "pm.test(\"Variables de entorno A definidas\", () => {",
+                  "  pm.expect(pm.environment.get(\"ACCESS_TOKEN_A\")).to.exist;",
+                  "  pm.expect(pm.environment.get(\"REFRESH_TOKEN_A\")).to.exist;",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [""],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{SUPABASE_ANON_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{TEST_EMAIL_A}}\",\n  \"password\": \"{{TEST_PASSWORD_A}}\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["auth", "v1", "token"],
+              "query": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login usuario B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "// Validación de status",
+                  "pm.test(\"Status 200 OK\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// Validaciones mínimas de tokens",
+                  "pm.test(\"access_token existe\", () => {",
+                  "  pm.expect(json.access_token).to.exist;",
+                  "  pm.expect(json.access_token).to.be.a(\"string\");",
+                  "  pm.expect(json.access_token.length).to.be.greaterThan(20);",
+                  "});",
+                  "",
+                  "pm.test(\"refresh_token existe\", () => {",
+                  "  pm.expect(json.refresh_token).to.exist;",
+                  "  pm.expect(json.refresh_token).to.be.a(\"string\");",
+                  "  // Umbral relajado, opcional:",
+                  "  pm.expect(json.refresh_token.length).to.be.greaterThan(5);",
+                  "});",
+                  "",
+                  "// Guardar tokens en el environment activo",
+                  "pm.environment.set(\"ACCESS_TOKEN_B\", json.access_token);",
+                  "pm.environment.set(\"REFRESH_TOKEN_B\", json.refresh_token);",
+                  "",
+                  "pm.test(\"Variables de entorno B definidas\", () => {",
+                  "  pm.expect(pm.environment.get(\"ACCESS_TOKEN_B\")).to.exist;",
+                  "  pm.expect(pm.environment.get(\"REFRESH_TOKEN_B\")).to.exist;",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [""],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "apikey",
+                "value": "{{SUPABASE_ANON_KEY}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{TEST_EMAIL_B}}\",\n  \"password\": \"{{TEST_PASSWORD_B}}\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
+              "host": ["{{SUPABASE_URL}}"],
+              "path": ["auth", "v1", "token"],
+              "query": [
+                {
+                  "key": "grant_type",
+                  "value": "password"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10 – GET /api/sugerencias",
+      "item": [
+        {
+          "name": "GET sin sesión → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 401\", function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test(\"Body contiene mensaje 'No hay sesión activa.'\", function () {",
+                  "  var jsonData;",
+                  "  try {",
+                  "    jsonData = pm.response.json();",
+                  "  } catch (e) {",
+                  "    pm.expect.fail(\"Respuesta no es JSON válido\");",
+                  "  }",
+                  "  pm.expect(jsonData).to.have.property('message');",
+                  "  pm.expect(jsonData.message).to.include('No hay sesión activa');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/sugerencias",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "sugerencias"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET listar sugerencias socio A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Parsear respuesta JSON",
+                  "const json = pm.response.json();",
+                  "",
+                  "// 1) Status 200",
+                  "pm.test(\"Status 200 OK\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "// 2) Body es array (puede ser [] o con datos)",
+                  "pm.test(\"Body es un array\", () => {",
+                  "  pm.expect(json).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "// 3) Si hay elementos, validamos shape básico",
+                  "if (json.length > 0) {",
+                  "  const item = json[0];",
+                  "",
+                  "  pm.test(\"Item tiene campos esperados\", () => {",
+                  "    pm.expect(item).to.have.property(\"id\");",
+                  "    pm.expect(item).to.have.property(\"titulo\");",
+                  "    pm.expect(item).to.have.property(\"contenido\");",
+                  "    pm.expect(item).to.have.property(\"estado\");",
+                  "    pm.expect(item).to.have.property(\"created_at\");",
+                  "  });",
+                  "",
+                  "  pm.test(\"Item NO expone socio_id\", () => {",
+                  "    pm.expect(item).to.not.have.property(\"socio_id\");",
+                  "  });",
+                  "} else {",
+                  "  pm.test(\"Lista puede estar vacía (escenario válido)\", () => {",
+                  "    pm.expect(json.length).to.eql(0);",
+                  "  });",
+                  "}",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN_A}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "20 – POST /api/sugerencias",
+      "item": [
+        {
+          "name": "POST sin sesión → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code es 401\", function () {",
+                  "  pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test(\"Body contiene mensaje 'No hay sesión activa.'\", function () {",
+                  "  var jsonData;",
+                  "  try {",
+                  "    jsonData = pm.response.json();",
+                  "  } catch (e) {",
+                  "    pm.expect.fail(\"Respuesta no es JSON válido\");",
+                  "  }",
+                  "  pm.expect(jsonData).to.have.property('message');",
+                  "  pm.expect(jsonData.message).to.include('No hay sesión activa');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Sugerencia F3b desde Postman\",\n  \"contenido\": \"Probando flujo sin sesión (debe fallar con 401).\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST válido socio A → 201",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 201 Created\", function () {",
+                  "  pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Body es objeto\", function () {",
+                  "  pm.expect(json).to.be.an(\"object\");",
+                  "});",
+                  "",
+                  "pm.test(\"Tiene campos esperados\", function () {",
+                  "  pm.expect(json).to.have.property(\"id\");",
+                  "  pm.expect(json).to.have.property(\"titulo\");",
+                  "  pm.expect(json).to.have.property(\"contenido\");",
+                  "  pm.expect(json).to.have.property(\"estado\");",
+                  "  pm.expect(json).to.have.property(\"created_at\");",
+                  "});",
+                  "",
+                  "pm.test(\"No expone socio_id\", function () {",
+                  "  pm.expect(json).to.not.have.property(\"socio_id\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN_A}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Sugerencia F3b A\",\n  \"contenido\": \"Contenido de prueba para F3b desde usuario A.\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST payload inválido ({} → 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 400\", function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Respuesta JSON válida\", function () {",
+                  "  var json;",
+                  "  try {",
+                  "    json = pm.response.json();",
+                  "  } catch (e) {",
+                  "    pm.expect.fail(\"Respuesta no es JSON válido\");",
+                  "  }",
+                  "  pm.expect(json).to.be.an(\"object\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN_A}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST campos en blanco (trim → 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status 400\", function () {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Respuesta JSON válida\", function () {",
+                  "  var json;",
+                  "  try {",
+                  "    json = pm.response.json();",
+                  "  } catch (e) {",
+                  "    pm.expect.fail(\"Respuesta no es JSON válido\");",
+                  "  }",
+                  "  pm.expect(json).to.be.an(\"object\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN_A}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"   \",\n  \"contenido\": \"   \"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "30 – RLS (placeholder)",
+      "item": [
+        {
+          "name": "Escenarios RLS (lectura/escritura) – aún no implementados",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// Placeholder: aquí se agregarán tests multiusuario para RLS (API-11, API-12).",
+                  "// En F3b V1 este request no se usa en la ejecución automatizada."
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
 }
