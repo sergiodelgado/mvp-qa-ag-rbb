@@ -1,303 +1,160 @@
-# Pruebas API · Fase 3b – `/api/sugerencias`
+# docs/qa_f3b.md — F3b (V2 limpio)
 
-**MVP QA – AG RBB · Buzón de Sugerencias**
+# Pruebas API · Fase 3b — `/api/sugerencias`
 
-Esta fase valida a nivel **API** que el endpoint `/api/sugerencias` cumple el contrato funcional definido en:
-
-- F2 (implementación UI + API + RLS)
-- F3 (pruebas UI E2E con Cypress)
-- `docs/qa_matrix.md` (matriz contrato–implementación–pruebas)
-
-El foco de F3b es **probar directamente la API**, sin navegador, usando **Postman/Newman**, asegurando:
-
-- Autenticación correcta (401 cuando corresponde)
-- Datos correctos (solo sugerencias propias)
-- Validaciones de payload (400)
-- Manejo de errores (500 controlados)
-- RLS efectiva (lectura/escritura)
+La fase F3b valida directamente la API del endpoint `/api/sugerencias` usando Postman/Newman. Se revisan autenticación, validaciones, RLS y manejo de errores.
+Este documento describe lo necesario para ejecutar la fase, evitando duplicación respecto de `qa_matrix.md`.
 
 ---
 
-## 1. Alcance de F3b
+## 1. Objetivo
 
-### 1.1 Endpoints bajo prueba
+Verificar que la API:
 
-- `GET /api/sugerencias`
-- `POST /api/sugerencias`
-
-Ambos implementados en:
-
-- `app/api/sugerencias/route.ts`
-
-### 1.2 Lo que se valida en F3b
-
-- Códigos HTTP (`200`, `201`, `400`, `401`, `500`)
-- Estructura mínima del payload de respuesta (shape)
-- Validaciones de payload de entrada (tipos, requeridos, vacíos)
-- Comportamiento ante errores de BD / RLS
-- Efectividad de RLS (multiusuario: lectura/escritura aislada por `auth.uid()`)
-
-### 1.3 Fuera de alcance en F3b
-
-- Otros endpoints (`/api/rag/ask`, etc.)
-- Métricas de performance (latencias, p95, p99)
-- Pruebas de carga / estrés
-- Integración CI/CD (se aborda formalmente en F4)
-- Validación UI (cubierta en F3 con Cypress)
+- Exija sesión (401 cuando corresponde).
+- Devuelva únicamente datos del usuario autenticado (RLS).
+- Aplique validaciones correctas (400).
+- Cree sugerencias válidas (201).
+- Maneje errores controlados (500).
+- Mantenga un shape estable (`id, titulo, contenido, estado, created_at`).
 
 ---
 
-## 2. Dependencias y precondiciones
+## 2. Alcance
 
-### 2.1 Entorno
+### Endpoints bajo prueba
 
-- App corriendo en local:
+- GET `/api/sugerencias`.
+- POST `/api/sugerencias`.
 
-```bash
+### Fuera de alcance
 
-npm install
-npm run dev
-# http://localhost:3000
-
-```
-
-- Variables de entorno configuradas:
-
-```text
-
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-
-```
-
-(Ver `.env.example`.)
-
-- Supabase con migraciones ejecutadas:
-  - `004_create_sugerencias.sql`
-  - `005_rls_policies_sugerencias.sql`
-  - `006_indexes_sugerencias.sql`
-
-### 2.2 Usuarios de prueba
-
-Se requieren al menos 2 usuarios en Supabase Auth y en la tabla `socios`:
-
-- **Usuario A (principal para tests):**
-  - `email = test@example.com`
-  - `password = Test1234!`
-  - fila correspondiente en `socios` (`id = auth.uid()`)
-
-- **Usuario B (para pruebas de RLS):**
-  - `email = test.b@example.com` (ejemplo)
-  - `password = TestB1234!`
-  - fila correspondiente en `socios`
-
-### 2.3 Datos mínimos en `sugerencias`
-
-Para ejecutar F3b con sentido:
-
-- Usuario A:
-  - Escenario 1: sin sugerencias (lista vacía)
-  - Escenario 2: con 1+ sugerencias propias en `public.sugerencias` (`socio_id = A.id`)
-
-- Usuario B:
-  - 1+ sugerencias (`socio_id = B.id`), para validar que A no las ve.
-
-La forma de preparar estos datos (scripts de seed / carga manual en Supabase) debe quedar documentada en el proyecto, pero no es responsabilidad directa de F3b.
+- Rutas UI (cubiertas en F3).
+- Endpoints `/api/rag/*`.
+- Pruebas de performance o carga.
+- Pipeline CI/CD (tratado en F4).
 
 ---
 
-## 3. Estrategia de autenticación en F3b
+## 3. Precondiciones
 
-El backend usa:
+### Entorno
 
-- `lib/supabaseServerClient.ts`
-- `createServerClient` de `@supabase/ssr`
-- cookies de Supabase (`cookies()` de `next/headers`)
+La aplicación debe estar ejecutándose en local.
+Las variables de entorno `.env.local` deben incluir URL y claves Supabase necesarias (`PUBLIC_URL`, `ANON_KEY`, `SERVICE_ROLE_KEY`).
 
-F3b no modifica esta estrategia.
-Los tests API se autentican simulando las mismas cookies que usa la app.
+### Migraciones necesarias
 
-### 3.1 Tokens desde Supabase Auth
+- Creación de tabla de sugerencias.
+- Políticas RLS.
+- Índices para optimizar lectura/escritura.
 
-La colección Postman:
+### Usuarios de prueba en Supabase
 
-1. Llama a la API de Supabase Auth (`/auth/v1/token?grant_type=password`) usando:
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-   - `TEST_EMAIL_*`
-   - `TEST_PASSWORD_*`
+Usuario A: `test@example.com / Test1234!`
+Usuario B: `test.b@example.com / TestB1234!`
+Ambos con rol `socio` y estado `activo`.
 
-2. Guarda en variables de environment:
-   - `ACCESS_TOKEN_A`, `REFRESH_TOKEN_A`
-   - `ACCESS_TOKEN_B`, `REFRESH_TOKEN_B`
+### Datos mínimos
 
-3. Utiliza estos tokens para construir las cookies necesarias que `supabaseServerClient` espera, de manera que el handler:
-
-const supabase = await supabaseServerClient()
-const { data: { user } } = await supabase.auth.getUser()
-
-vea a A o B como usuarios autenticados.
-
-> Nota: la implementación exacta de nombres de cookies y mapeo tokens→cookies se documenta en el README de `postman/` y en comentarios de la colección.
+- Usuario A: lista vacía o con sus propias sugerencias.
+- Usuario B: al menos una sugerencia existente (para validar lectura cruzada vía RLS).
 
 ---
 
-## 4. Estructura técnica de F3b
+## 4. Autenticación en F3b
 
-### 4.1 Archivos y carpetas
+La colección Postman usa login directo contra Supabase Auth (grant_type=password).
+El flujo consiste en:
 
-Se define la siguiente estructura:
+1. Ejecutar login de A y B.
+2. Guardar tokens de acceso y refresh para cada usuario.
+3. Enviar los requests a la API usando `Authorization: Bearer <token>`.
 
-postman/
-mvp-ag-rbb-buzon.postman_collection.json
-mvp-ag-rbb-local.postman_environment.json
-README.md # (opcional pero recomendado)
-
-### 4.2 Environment Postman: `mvp-ag-rbb-local`
-
-Variables mínimas:
-
-- `BASE_URL` → `http://localhost:3000`
-- `API_BASE_URL` → `{{BASE_URL}}/api`
-
-Usuarios:
-
-- `TEST_EMAIL_A` → `test@example.com`
-- `TEST_PASSWORD_A` → `Test1234!`
-- `TEST_EMAIL_B` → `test.b@example.com`
-- `TEST_PASSWORD_B` → `TestB1234!`
-
-Supabase:
-
-- `SUPABASE_URL` → valor real de `NEXT_PUBLIC_SUPABASE_URL`
-- `SUPABASE_ANON_KEY` → valor real de `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-Tokens (rellenados por pre-request scripts):
-
-- `ACCESS_TOKEN_A`
-- `REFRESH_TOKEN_A`
-- `ACCESS_TOKEN_B`
-- `REFRESH_TOKEN_B`
+Este método permite validar la API sin depender aún de las cookies generadas por Next.js.
+La migración completa hacia cookies queda para una iteración futura.
 
 ---
 
-## 5. Diseño de la colección Postman
+## 5. Colección Postman
 
-Colección: **MVP QA · AG RBB – Buzón · API F3b**
+Ubicación: carpeta `postman/`.
 
-### 5.1 Folders
+### Carpetas principales
 
-1. `00 – Auth / Tokens`
-   - Login usuario A → setea `ACCESS_TOKEN_A` / `REFRESH_TOKEN_A`
-   - Login usuario B → idem para B
+**00 – Auth / Tokens**
+Obtiene tokens de usuario A y B.
 
-2. `10 – GET /api/sugerencias`
-   - `GET sin sesión → 401` (API-01)
-   - `GET usuario A sin sugerencias → []` (API-09)
-   - `GET usuario A con sugerencias → solo propias` (API-03 + API-09)
+**10 – GET `/api/sugerencias`**
+Incluye casos sin sesión, autenticado y (pendiente) validación A/B con RLS.
 
-3. `20 – POST /api/sugerencias`
-   - `POST válido → 201 + shape` (API-04 + API-10)
-   - `POST payload inválido (sin campos / tipos erróneos) → 400` (API-05)
-   - `POST strings vacíos (solo espacios) → 400` (API-06)
-   - `POST sin sesión → 401` (API-02)
-   - `POST con error de BD / RLS → 500` (API-08) [escenario avanzado]
+**20 – POST `/api/sugerencias`**
+Implementa casos sin sesión y caso válido 201.
+Pendientes: payload inválido, campos vacíos y errores de BD/RLS.
 
-4. `30 – RLS`
-   - `GET usuario A no ve sugerencias de B` (API-11)
-   - Prueba de inserción con `socio_id` distinto (si se hace vía Supabase directo) (API-12)
-
-### 5.2 Asserts por tipo de request
-
-En cada request de Postman se deben definir tests que validen:
-
-- Status code esperado (`pm.response.code`).
-- Shape básico del body:
-  - `Array.isArray(...)` para GET 200.
-  - Presencia de campos `id`, `titulo`, `contenido`, `estado`, `created_at` en 201.
-
-- Mensajes de error esperados:
-  - `"No hay sesión activa."` para 401.
-  - `"Payload inválido. Se requiere titulo y contenido."` para body inválido.
-  - `"Titulo y contenido son obligatorios."` para strings vacíos.
-  - `"Error al obtener las sugerencias."` / `"Error al crear las sugerencias."` para errores 500.
+**30 – RLS**
+Escenarios para validar visibilidad entre usuarios y protección contra inserciones con `socio_id` alterado.
 
 ---
 
-## 6. Ejecución de F3b con Newman
+## 6. Validaciones mínimas
 
-En `package.json` se agregan:
+### GET 200
 
-- DevDependency:
+- Respuesta es un array.
+- Cada objeto incluye: `id`, `titulo`, `contenido`, `estado`, `created_at`.
+- No debe exponerse `socio_id`.
 
-npm install --save-dev newman
+### POST 201
 
-- Scripts:
+- Devuelve un objeto con el mismo shape.
+- Campos `titulo` y `contenido` deben ser strings no vacíos.
 
-```json
-"scripts": {
-  "test:api:f3b": "newman run postman/mvp-ag-rbb-buzon.postman_collection.json -e postman/mvp-ag-rbb-local.postman_environment.json"
-}
-```
+### Mensajes de error esperados
 
-- Ejecución local:
+- 401: “No hay sesión activa.”
+- 400: mensajes por payload inválido o campos faltantes.
+- 500: errores controlados en lectura o creación.
 
-npm run test:api:f3b
+---
 
-- Requisitos:
-  - App corriendo (npm run dev)
+## 7. Ejecución vía Newman
 
-  - Environment mvp-ag-rbb-local con:
-    - URLs correctas
+### Requisitos
 
-    - credenciales de test
+- Aplicación en ejecución local.
+- Environment Postman con URLs, claves y usuarios configurados.
+- Tokens generados mediante las requests de login.
 
-    - tokens generados (via folder 00 – Auth)
+La suite se ejecuta desde el script definido en package.json.
+A medida que se agregan escenarios pendientes, la colección debe actualizarse y exportarse nuevamente.
 
-## 7. Trazabilidad con docs/qa_matrix.md
+---
 
-Los escenarios de F3b están alineados con los IDs de contrato definidos en docs/qa_matrix.md.
+## 8. Estado actual de F3b
 
-Tabla resumen:
+| Escenario             | Estado | Comentario                              |
+| --------------------- | ------ | --------------------------------------- |
+| GET sin sesión (401)  | ✔     | Validado en Newman                      |
+| POST sin sesión (401) | ✔     | Validado en Newman                      |
+| GET A con datos       | ✔     | Validado en Postman UI                  |
+| POST A válido (201)   | ✔     | Shape correcto                          |
+| Casos 400             | ◐      | Pendientes de agregar                   |
+| Casos 500             | ○      | Requieren forzar error controlado       |
+| RLS lectura A/B       | ○      | Pendiente, datos creados                |
+| RLS escritura         | ○      | Requiere prueba directa                 |
+| Suite Newman completa | ◐      | Depende de agregar escenarios faltantes |
 
-| ID     | Endpoint              | Escenario básico                                            | Cubierto en F3b por…                                 |
-| ------ | --------------------- | ----------------------------------------------------------- | ---------------------------------------------------- |
-| API-01 | GET /api/sugerencias  | 401 sin sesión                                              | Folder `10 – GET` · request "GET sin sesión"         |
-| API-02 | POST /api/sugerencias | 401 sin sesión                                              | Folder `20 – POST` · "POST sin sesión"               |
-| API-03 | GET /api/sugerencias  | Solo sugerencias propias (RLS lectura)                      | Folder `10 – GET` · "GET A con sugerencias"          |
-| API-04 | POST /api/sugerencias | Crea sugerencia asociada a `auth.uid()`                     | Folder `20 – POST` · "POST válido → 201"             |
-| API-05 | POST /api/sugerencias | Payload inválido (sin campos / tipos erróneos)              | Folder `20 – POST` · "POST payload inválido"         |
-| API-06 | POST /api/sugerencias | Campos vacíos tras `trim()` → 400                           | Folder `20 – POST` · "POST strings vacíos"           |
-| API-07 | GET /api/sugerencias  | Error BD → 500 + mensaje genérico                           | Folder `10 – GET` · escenario avanzado               |
-| API-08 | POST /api/sugerencias | Error BD → 500 + mensaje genérico                           | Folder `20 – POST` · escenario avanzado              |
-| API-09 | GET /api/sugerencias  | Respuesta siempre array (`[]` o con datos)                  | Folder `10 – GET` · casos vacío y con datos          |
-| API-10 | POST /api/sugerencias | Respuesta 201 con shape estable (sin `socio_id`)            | Folder `20 – POST` · tests de shape                  |
-| API-11 | RLS lectura           | Usuario A no ve sugerencias de B                            | Folder `30 – RLS` · GET con A y datos de B           |
-| API-12 | RLS escritura         | No se puede insertar con `socio_id` distinto a `auth.uid()` | Folder `30 – RLS` · prueba específica (Supabase/SQL) |
+---
 
-- Cualquier cambio de contrato en:
-  - app/api/sugerencias/route.ts,
+## 9. Checklist de cierre
 
-  - migraciones 004, 005, 006,
-
-debe reflejarse tanto en docs/qa_matrix.md como en esta tabla y en la colección Postman.
-
-## 8. Checklist F3b
-
-| Ítem                                                                  | Estado esperado al cerrar F3b |
-| --------------------------------------------------------------------- | ----------------------------- |
-| Colección Postman creada (`mvp-ag-rbb-buzon.postman_collection.json`) | ◐                             |
-| Environment local creado (`mvp-ag-rbb-local`)                         | ◐                             |
-| Estrategia de auth funcionando (tokens Supabase → cookies)            | ◐                             |
-| Scripts `npm run test:api:f3b` configurados                           | ◐                             |
-| Escenarios GET 401/200/array vacía/array con datos                    | ◐                             |
-| Escenarios POST 201/400/401/500                                       | ◐                             |
-| RLS lectura (A no ve datos de B)                                      | ◐                             |
-| RLS escritura (insert inválido rechazado)                             | ◐                             |
-| Trazabilidad actualizada en `docs/qa_matrix.md`                       | ◐                             |
-| Integración con CI (F4) planificada pero no implementada              | ○                             |
-
-Al finalizar F3b, todos los ítems anteriores deben estar marcados como ✔ en la versión actualizada de este documento.
+- [ ] Colección Postman completa y exportada.
+- [ ] Environment actualizado con valores reales.
+- [ ] Escenarios GET listos: 401, 200, vacío, con datos.
+- [ ] Escenarios POST listos: 201, 400, 401, 500.
+- [ ] Pruebas RLS en lectura y escritura con usuarios A/B.
+- [ ] Ejecución correcta de `npm run test:api:f3b`.
+- [ ] `docs/qa_matrix.md` actualizado con resultados finales.
 
 ---
