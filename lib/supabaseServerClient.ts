@@ -1,29 +1,33 @@
 // lib/supabaseServerClient.ts
-// Cliente de Supabase para backend (route handlers, server components)
+// Clientes de Supabase para backend:
+// - supabaseServerClient(): usa cookies() (UI / SSR Next)
+// - supabaseFromRequest(req): usa Authorization header (API / Postman)
 
 import { cookies } from 'next/headers'
+import type { NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
-import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 if (!url || !anonKey) {
   throw new Error(
-    'Faltan variables NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY para configurar Supabase (server).'
+    'Faltan variables de entorno NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY para configurar Supabase (server).'
   )
 }
 
 /**
- * Cliente clásico basado en cookies (para la UI Next.js).
+ * Cliente para SSR / UI (usa cookies() de Next)
+ * Lo pueden usar page.tsx, layout.tsx, etc.
  */
-export async function supabaseServerClient(): Promise<SupabaseClient> {
-  const cookieStore = cookies()
+export async function supabaseServerClient() {
+  const cookieStore = await cookies()
 
   return createServerClient(url, anonKey, {
     cookies: {
       get(name: string) {
-        return cookieStore.get(name)?.value
+        return cookieStore.get(name)?.value ?? ''
       },
       set(name: string, value: string, options: any) {
         try {
@@ -44,24 +48,22 @@ export async function supabaseServerClient(): Promise<SupabaseClient> {
 }
 
 /**
- * Cliente híbrido para API:
- * - Si viene Authorization: Bearer <token> → usa ese token (modo Postman/F3b).
- * - Si no viene header → cae al modo cookies (UI navegador).
+ * Cliente para route handlers que reciben Authorization: Bearer <token>
+ * (caso Postman / Newman en F3b)
  */
-export async function supabaseFromRequest(req: Request): Promise<SupabaseClient> {
-  const authHeader = req.headers.get('authorization')
+export function supabaseFromRequest(req: NextRequest) {
+  const authHeader =
+    req.headers.get('authorization') || req.headers.get('Authorization') || ''
 
-  if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
-    // Modo token (Postman / F3b)
-    return createClient(url, anonKey, {
-      global: {
-        headers: {
-          Authorization: authHeader
-        }
-      }
-    })
+  // Si no viene header, igual creamos cliente; auth.getUser() fallará y devolverá 401 en tu route.ts
+  const headers: Record<string, string> = {}
+  if (authHeader) {
+    headers['Authorization'] = authHeader
   }
 
-  // Modo cookies (UI Next.js)
-  return supabaseServerClient()
+  return createClient(url, anonKey, {
+    global: {
+      headers
+    }
+  })
 }
