@@ -195,6 +195,7 @@ Documentos: modelos y API de sugerencias.
 ### API — Postman / Newman (F3b/F3c)
 
 - Requisitos: app en ejecución, environment `postman/mvp-ag-rbb-local.postman_environment.json` con credenciales A/B y variables Supabase.
+- El environment incluye valores locales de ejemplo (`SUPABASE_URL=http://localhost:54321`, `local-anon-key`, contraseñas `changeme`); reemplázalos por tus credenciales reales antes de lanzar Newman.
 - Cobertura: login A/B (password grant), GET/POST con header `Authorization: Bearer`, validaciones 400/500, RLS multiusuario, casos 401 sin sesión.
 - Comandos:
   - Interactivo: abrir colección `postman/mvp-ag-rbb-buzon.postman_collection.json` en Postman.
