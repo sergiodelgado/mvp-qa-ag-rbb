@@ -6,7 +6,6 @@
 import { cookies } from 'next/headers'
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -49,53 +48,46 @@ export async function supabaseServerClient() {
 
 /**
  * Cliente para route handlers que reciben Authorization: Bearer <token>
- * (caso Postman / Newman en F3b)
+ * o cookies de sesión de Supabase (caso Postman / Newman / UI)
  */
 export function supabaseFromRequest(req: NextRequest) {
   const authHeader =
     req.headers.get('authorization') || req.headers.get('Authorization') || ''
 
-  if (authHeader) {
-    return {
-      supabase: createClient(url, anonKey, {
-        global: {
-          headers: {
-            Authorization: authHeader
-          }
-        }
-      })
-    }
-  }
-
-  const cookieStore = cookies()
   const response = NextResponse.next({
     request: {
       headers: req.headers
     }
   })
 
-  return {
-    supabase: createServerClient(url, anonKey, {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value
-        },
-        set(name: string, value: string, options: CookieOptions) {
-          try {
-            response.cookies.set({ name, value, ...options })
-          } catch (err) {
-            console.error('Error setting cookie from request:', err)
-          }
-        },
-        remove(name: string, options: CookieOptions) {
-          try {
-            response.cookies.set({ name, value: '', ...options, maxAge: 0 })
-          } catch (err) {
-            console.error('Error removing cookie from request:', err)
-          }
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      get(name: string) {
+        return req.cookies.get(name)?.value
+      },
+      set(name: string, value: string, options: CookieOptions) {
+        try {
+          response.cookies.set({ name, value, ...options })
+        } catch (err) {
+          console.error('Error setting cookie from request:', err)
+        }
+      },
+      remove(name: string, options: CookieOptions) {
+        try {
+          response.cookies.set({ name, value: '', ...options, maxAge: 0 })
+        } catch (err) {
+          console.error('Error removing cookie from request:', err)
         }
       }
-    }),
-    response
-  }
+    },
+    global: authHeader
+      ? {
+          headers: {
+            Authorization: authHeader
+          }
+        }
+      : undefined
+  })
+
+  return { supabase, response }
 }
