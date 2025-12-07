@@ -69,28 +69,22 @@ Documentos asociados:
 
 ---
 
-### F3b — Pruebas API (Postman/Newman) (F3b V0 · en progreso)
+### F3b — Pruebas API (Postman/Newman) (consolidado)
 
 Artefactos:
 
 - Colección Postman + environment local
 - Script Newman `test:api:f3b`
 
-Cobertura lograda:
+Cobertura lograda (alineada con matriz y changelog):
 
 - GET sin sesión → 401
 - POST sin sesión → 401
+- GET autenticado → 200, array (vacío o con datos propios), sin `socio_id`
 - POST válido → 201 con shape correcto (sin `socio_id`)
-- Autenticación multiusuario funcional (usuarios A y B)
-
-Cobertura pendiente (según matriz y changelog):
-
-- GET autenticado: validar array vacío
-- Validaciones 400: payload `{}` y campos solo con espacios
-- Errores 500: simular fallos en GET y POST
-- RLS multiusuario:
-  - lectura A/B
-  - intento de inserción con `socio_id` alterado
+- Validaciones 400 y errores 500 controlados
+- Autenticación multiusuario funcional (usuarios A y B) + RLS lectura/escritura
+- API `/api/sugerencias` acepta sesión por cookies (UI/SSR) o `Authorization: Bearer` (Postman/Newman)
 
 Documentos asociados:
 `docs/qa_f3b.md`, `docs/qa_matrix.md`, `docs/CHANGELOG.md`
@@ -121,9 +115,10 @@ Las claves reales no se versionan.
 ### Clientes
 
 - **supabaseClientPublic**: cliente browser con persistencia vía cookies.
-- **supabaseServerClient**: cliente server usado en `/api/sugerencias` y futuras integraciones.
+- **supabaseServerClient**: cliente server SSR/UI.
+- **supabaseFromRequest**: cliente para route handlers; acepta **Authorization: Bearer** (Postman/Newman) o cookies de sesión (UI/SSR).
 
-Ambos están alineados con el modelo de sesión de Supabase + Next.js.
+Todos están alineados con el modelo de sesión de Supabase + Next.js y funcionan tanto en Supabase local como en producción.
 
 ---
 

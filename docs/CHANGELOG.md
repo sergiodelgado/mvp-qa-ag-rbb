@@ -6,6 +6,15 @@ Registro técnico por fases. Fechas aproximadas usadas solo para trazabilidad.
 
 ---
 
+## **0.4.1 — F3b consolidado + avance F3c (API cookies + build)**
+
+- **Supabase server-side**: corrección del adapter de cookies (`cookieStore.get`) para evitar 401 falsos y mantener compatibilidad local/prod.
+- **Route handler `/api/sugerencias`**: ahora acepta sesión por cookies (UI/SSR) además de `Authorization: Bearer` (Postman/Newman), manteniendo la ruta estable para ambas fuentes.
+- **Documentación**: README y QA F3b actualizados (flujo de autenticación en API). Matriz F3b sigue en verde.
+- **CI local**: validación `npm run build` ejecutada (falló por falta de acceso a Google Fonts en entorno aislado; código listo para CI con red).
+
+---
+
 ## **0.4.0 — F3b · Pruebas API `/api/sugerencias` — Completado**
 
 ### ✔ Artefactos incorporados

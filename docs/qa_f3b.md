@@ -7,6 +7,7 @@
   - `API_BASE_URL`
   - `TEST_EMAIL_A`, `TEST_PASSWORD_A`
   - `TEST_EMAIL_B`, `TEST_PASSWORD_B`
+- Autenticación aceptada por cookies (UI/SSR) o por header `Authorization: Bearer <token>` (Postman/Newman).
 - Colección Postman actualizada:
   - `10 – Login usuario A`
   - `11 – Login usuario B`

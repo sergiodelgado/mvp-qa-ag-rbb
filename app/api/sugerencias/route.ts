@@ -8,7 +8,7 @@ import { supabaseFromRequest } from '@/lib/supabaseServerClient'
 // Lista las sugerencias del usuario autenticado, ordenadas por created_at desc
 export async function GET(req: NextRequest) {
   try {
-    const supabase = await supabaseFromRequest(req)
+    const supabase = supabaseFromRequest(req)
 
     const {
       data: { user },
@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 // Crea una nueva sugerencia para el usuario autenticado
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await supabaseFromRequest(req)
+    const supabase = supabaseFromRequest(req)
 
     const {
       data: { user },
