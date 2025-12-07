@@ -9,7 +9,7 @@
     "lint": "eslint",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "test:api:f3b": "newman run ./postman/mvp-ag-rbb-buzon.postman_collection.json -e ./postman/mvp-ag-rbb-local.postman_environment.json --delay-request 200"
+    "test:api:f3b": "newman run ./postman/mvp-ag-rbb-buzon.postman_collection.json -e ./postman/mvp-ag-rbb-local.postman_environment.json --reporters cli --timeout-request 15000 --delay-request 200"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
