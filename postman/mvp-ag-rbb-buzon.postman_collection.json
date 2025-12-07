@@ -1,31 +1,28 @@
 {
   "info": {
-    "_postman_id": "e06329f3-cbc8-41d6-a6ff-eb6cad16fbee",
-    "name": "MVP QA · AG RBB – Buzón · API F3b",
-    "description": "Colección inicial para pruebas API F3b del endpoint /api/sugerencias.\n\nF3b · V0: solo escenarios sin sesión (401) para GET y POST.\nF3b · V1: incluye ahora escenarios autenticados básicos (201) y validaciones 400.\nLos escenarios avanzados de RLS y errores 500 se completarán en iteraciones posteriores.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "50445768",
-    "_collection_link": "https://sergiodelgadom-9944007.postman.co/workspace/3cc5d051-1ec5-481a-8f65-6ea2cb442260/collection/50445768-e06329f3-cbc8-41d6-a6ff-eb6cad16fbee?action=share&source=collection_link&creator=50445768"
+    "_postman_id": "mvp-qa-ag-rbb-f3b-v2",
+    "name": "MVP QA · AG RBB – Buzón · API F3b V2",
+    "description": "Colección limpia para pruebas API F3b del endpoint /api/sugerencias.\nIncluye autenticación A/B, escenarios 401/200/201/400 y validación de RLS.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
     {
       "name": "00 – Auth / Tokens",
       "item": [
         {
-          "name": "Login usuario A (placeholder)",
+          "name": "Login usuario A",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "const json = pm.response.json();",
                   "",
-                  "// Validación de status",
                   "pm.test(\"Status 200 OK\", () => {",
                   "  pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "// Validaciones mínimas de tokens",
                   "pm.test(\"access_token existe\", () => {",
                   "  pm.expect(json.access_token).to.exist;",
                   "  pm.expect(json.access_token).to.be.a(\"string\");",
@@ -35,32 +32,17 @@
                   "pm.test(\"refresh_token existe\", () => {",
                   "  pm.expect(json.refresh_token).to.exist;",
                   "  pm.expect(json.refresh_token).to.be.a(\"string\");",
-                  "  // Umbral relajado, opcional:",
                   "  pm.expect(json.refresh_token.length).to.be.greaterThan(5);",
                   "});",
                   "",
-                  "// Guardar tokens en el environment activo",
                   "pm.environment.set(\"ACCESS_TOKEN_A\", json.access_token);",
                   "pm.environment.set(\"REFRESH_TOKEN_A\", json.refresh_token);",
                   "",
                   "pm.test(\"Variables de entorno A definidas\", () => {",
                   "  pm.expect(pm.environment.get(\"ACCESS_TOKEN_A\")).to.exist;",
                   "  pm.expect(pm.environment.get(\"REFRESH_TOKEN_A\")).to.exist;",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [""],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                  "});"
+                ]
               }
             }
           ],
@@ -83,12 +65,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{TEST_EMAIL_A}}\",\n  \"password\": \"{{TEST_PASSWORD_A}}\"\n}\n",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"email\": \"{{TEST_EMAIL_A}}\",\n  \"password\": \"{{TEST_PASSWORD_A}}\"\n}"
             },
             "url": {
               "raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
@@ -110,15 +87,14 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
                   "const json = pm.response.json();",
                   "",
-                  "// Validación de status",
                   "pm.test(\"Status 200 OK\", () => {",
                   "  pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "// Validaciones mínimas de tokens",
                   "pm.test(\"access_token existe\", () => {",
                   "  pm.expect(json.access_token).to.exist;",
                   "  pm.expect(json.access_token).to.be.a(\"string\");",
@@ -128,32 +104,17 @@
                   "pm.test(\"refresh_token existe\", () => {",
                   "  pm.expect(json.refresh_token).to.exist;",
                   "  pm.expect(json.refresh_token).to.be.a(\"string\");",
-                  "  // Umbral relajado, opcional:",
                   "  pm.expect(json.refresh_token.length).to.be.greaterThan(5);",
                   "});",
                   "",
-                  "// Guardar tokens en el environment activo",
                   "pm.environment.set(\"ACCESS_TOKEN_B\", json.access_token);",
                   "pm.environment.set(\"REFRESH_TOKEN_B\", json.refresh_token);",
                   "",
                   "pm.test(\"Variables de entorno B definidas\", () => {",
                   "  pm.expect(pm.environment.get(\"ACCESS_TOKEN_B\")).to.exist;",
                   "  pm.expect(pm.environment.get(\"REFRESH_TOKEN_B\")).to.exist;",
-                  "});",
-                  ""
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
-              }
-            },
-            {
-              "listen": "prerequest",
-              "script": {
-                "exec": [""],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                  "});"
+                ]
               }
             }
           ],
@@ -176,12 +137,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"{{TEST_EMAIL_B}}\",\n  \"password\": \"{{TEST_PASSWORD_B}}\"\n}\n",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"email\": \"{{TEST_EMAIL_B}}\",\n  \"password\": \"{{TEST_PASSWORD_B}}\"\n}"
             },
             "url": {
               "raw": "{{SUPABASE_URL}}/auth/v1/token?grant_type=password",
@@ -208,13 +164,14 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code es 401\", function () {",
+                  "pm.test(\"Status code es 401\", () => {",
                   "  pm.response.to.have.status(401);",
                   "});",
                   "",
-                  "pm.test(\"Body contiene mensaje 'No hay sesión activa.'\", function () {",
-                  "  var jsonData;",
+                  "pm.test(\"Body contiene mensaje 'No hay sesión activa.'\", () => {",
+                  "  let jsonData;",
                   "  try {",
                   "    jsonData = pm.response.json();",
                   "  } catch (e) {",
@@ -223,10 +180,7 @@
                   "  pm.expect(jsonData).to.have.property('message');",
                   "  pm.expect(jsonData.message).to.include('No hay sesión activa');",
                   "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                ]
               }
             }
           ],
@@ -237,37 +191,33 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{BASE_URL}}/api/sugerencias",
-              "host": ["{{BASE_URL}}"],
-              "path": ["api", "sugerencias"]
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
             }
           },
           "response": []
         },
         {
-          "name": "GET listar sugerencias socio A",
+          "name": "GET socio A → 200 lista propia",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "// Parsear respuesta JSON",
                   "const json = pm.response.json();",
                   "",
-                  "// 1) Status 200",
                   "pm.test(\"Status 200 OK\", () => {",
                   "  pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "// 2) Body es array (puede ser [] o con datos)",
                   "pm.test(\"Body es un array\", () => {",
                   "  pm.expect(json).to.be.an(\"array\");",
                   "});",
                   "",
-                  "// 3) Si hay elementos, validamos shape básico",
                   "if (json.length > 0) {",
                   "  const item = json[0];",
-                  "",
                   "  pm.test(\"Item tiene campos esperados\", () => {",
                   "    pm.expect(item).to.have.property(\"id\");",
                   "    pm.expect(item).to.have.property(\"titulo\");",
@@ -275,20 +225,11 @@
                   "    pm.expect(item).to.have.property(\"estado\");",
                   "    pm.expect(item).to.have.property(\"created_at\");",
                   "  });",
-                  "",
                   "  pm.test(\"Item NO expone socio_id\", () => {",
                   "    pm.expect(item).to.not.have.property(\"socio_id\");",
                   "  });",
-                  "} else {",
-                  "  pm.test(\"Lista puede estar vacía (escenario válido)\", () => {",
-                  "    pm.expect(json.length).to.eql(0);",
-                  "  });",
-                  "}",
-                  ""
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                  "}"
+                ]
               }
             }
           ],
@@ -299,6 +240,166 @@
                 {
                   "key": "token",
                   "value": "{{ACCESS_TOKEN_A}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET socio B → 200 lista propia",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status 200 OK\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Body es un array\", () => {",
+                  "  pm.expect(json).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "if (json.length > 0) {",
+                  "  const item = json[0];",
+                  "  pm.test(\"Item tiene campos esperados\", () => {",
+                  "    pm.expect(item).to.have.property(\"id\");",
+                  "    pm.expect(item).to.have.property(\"titulo\");",
+                  "    pm.expect(item).to.have.property(\"contenido\");",
+                  "    pm.expect(item).to.have.property(\"estado\");",
+                  "    pm.expect(item).to.have.property(\"created_at\");",
+                  "  });",
+                  "  pm.test(\"Item NO expone socio_id\", () => {",
+                  "    pm.expect(item).to.not.have.property(\"socio_id\");",
+                  "  });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN_B}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET RLS – A no ve sugerencias de B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status 200 OK\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Body es un array\", () => {",
+                  "  pm.expect(json).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Usuario A NO ve sugerencias marcadas de B\", () => {",
+                  "  const conflict = json.find((item) =>",
+                  "    typeof item.titulo === 'string' && item.titulo.includes('Solo visible para B')",
+                  "  );",
+                  "  pm.expect(",
+                  "    conflict,",
+                  "    'No debe aparecer ninguna sugerencia marcada Solo visible para B'",
+                  "  ).to.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN_A}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{API_BASE_URL}}/sugerencias",
+              "host": ["{{API_BASE_URL}}"],
+              "path": ["sugerencias"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET RLS – B no ve sugerencias de A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status 200 OK\", () => {",
+                  "  pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Body es un array\", () => {",
+                  "  pm.expect(json).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Usuario B NO ve sugerencias marcadas de A\", () => {",
+                  "  const conflict = json.find((item) =>",
+                  "    typeof item.titulo === 'string' && item.titulo.includes('Solo visible para A')",
+                  "  );",
+                  "  pm.expect(",
+                  "    conflict,",
+                  "    'No debe aparecer ninguna sugerencia marcada Solo visible para A'",
+                  "  ).to.be.undefined;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN_B}}",
                   "type": "string"
                 }
               ]
@@ -324,13 +425,14 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status code es 401\", function () {",
+                  "pm.test(\"Status code es 401\", () => {",
                   "  pm.response.to.have.status(401);",
                   "});",
                   "",
-                  "pm.test(\"Body contiene mensaje 'No hay sesión activa.'\", function () {",
-                  "  var jsonData;",
+                  "pm.test(\"Body contiene mensaje 'No hay sesión activa.'\", () => {",
+                  "  let jsonData;",
                   "  try {",
                   "    jsonData = pm.response.json();",
                   "  } catch (e) {",
@@ -339,10 +441,7 @@
                   "  pm.expect(jsonData).to.have.property('message');",
                   "  pm.expect(jsonData.message).to.include('No hay sesión activa');",
                   "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                ]
               }
             }
           ],
@@ -354,17 +453,13 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Sugerencia F3b desde Postman\",\n  \"contenido\": \"Probando flujo sin sesión (debe fallar con 401).\"\n}\n",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"titulo\": \"Sugerencia sin sesión\",\n  \"contenido\": \"No debería crearse.\" \n}"
             },
             "url": {
               "raw": "{{API_BASE_URL}}/sugerencias",
@@ -380,32 +475,23 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 201 Created\", function () {",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status 201 Created\", () => {",
                   "  pm.response.to.have.status(201);",
                   "});",
                   "",
-                  "const json = pm.response.json();",
-                  "",
-                  "pm.test(\"Body es objeto\", function () {",
-                  "  pm.expect(json).to.be.an(\"object\");",
-                  "});",
-                  "",
-                  "pm.test(\"Tiene campos esperados\", function () {",
+                  "pm.test(\"Body tiene campos esperados\", () => {",
                   "  pm.expect(json).to.have.property(\"id\");",
                   "  pm.expect(json).to.have.property(\"titulo\");",
                   "  pm.expect(json).to.have.property(\"contenido\");",
                   "  pm.expect(json).to.have.property(\"estado\");",
                   "  pm.expect(json).to.have.property(\"created_at\");",
-                  "});",
-                  "",
-                  "pm.test(\"No expone socio_id\", function () {",
                   "  pm.expect(json).to.not.have.property(\"socio_id\");",
                   "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                ]
               }
             }
           ],
@@ -424,17 +510,13 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Sugerencia F3b A\",\n  \"contenido\": \"Contenido de prueba para F3b desde usuario A.\"\n}\n",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"titulo\": \"RLS · QA A · Solo visible para A\",\n  \"contenido\": \"Prueba de inserción con RLS para el socio A.\"\n}"
             },
             "url": {
               "raw": "{{API_BASE_URL}}/sugerencias",
@@ -445,29 +527,28 @@
           "response": []
         },
         {
-          "name": "POST payload inválido ({} → 400)",
+          "name": "POST válido socio B → 201",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 400\", function () {",
-                  "  pm.response.to.have.status(400);",
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test(\"Status 201 Created\", () => {",
+                  "  pm.response.to.have.status(201);",
                   "});",
                   "",
-                  "pm.test(\"Respuesta JSON válida\", function () {",
-                  "  var json;",
-                  "  try {",
-                  "    json = pm.response.json();",
-                  "  } catch (e) {",
-                  "    pm.expect.fail(\"Respuesta no es JSON válido\");",
-                  "  }",
-                  "  pm.expect(json).to.be.an(\"object\");",
+                  "pm.test(\"Body tiene campos esperados\", () => {",
+                  "  pm.expect(json).to.have.property(\"id\");",
+                  "  pm.expect(json).to.have.property(\"titulo\");",
+                  "  pm.expect(json).to.have.property(\"contenido\");",
+                  "  pm.expect(json).to.have.property(\"estado\");",
+                  "  pm.expect(json).to.have.property(\"created_at\");",
+                  "  pm.expect(json).to.not.have.property(\"socio_id\");",
                   "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                ]
               }
             }
           ],
@@ -477,7 +558,7 @@
               "bearer": [
                 {
                   "key": "token",
-                  "value": "{{ACCESS_TOKEN_A}}",
+                  "value": "{{ACCESS_TOKEN_B}}",
                   "type": "string"
                 }
               ]
@@ -486,17 +567,13 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{ }",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"titulo\": \"RLS · QA B · Solo visible para B\",\n  \"contenido\": \"Prueba de inserción con RLS para el socio B.\"\n}"
             },
             "url": {
               "raw": "{{API_BASE_URL}}/sugerencias",
@@ -507,29 +584,23 @@
           "response": []
         },
         {
-          "name": "POST campos en blanco (trim → 400)",
+          "name": "POST payload inválido → 400",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test(\"Status 400\", function () {",
+                  "pm.test(\"Status 400 Bad Request\", () => {",
                   "  pm.response.to.have.status(400);",
                   "});",
                   "",
-                  "pm.test(\"Respuesta JSON válida\", function () {",
-                  "  var json;",
-                  "  try {",
-                  "    json = pm.response.json();",
-                  "  } catch (e) {",
-                  "    pm.expect.fail(\"Respuesta no es JSON válido\");",
-                  "  }",
-                  "  pm.expect(json).to.be.an(\"object\");",
+                  "pm.test(\"Mensaje de payload inválido\", () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('message');",
+                  "  pm.expect(json.message).to.include('Payload inválido');",
                   "});"
-                ],
-                "type": "text/javascript",
-                "packages": {},
-                "requests": {}
+                ]
               }
             }
           ],
@@ -548,17 +619,13 @@
             "header": [
               {
                 "key": "Content-Type",
-                "value": "application/json"
+                "value": "application/json",
+                "type": "text"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"titulo\": \"   \",\n  \"contenido\": \"   \"\n}\n",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
+              "raw": "{\n  \"titulo\": 123,\n  \"contenido\": false\n}"
             },
             "url": {
               "raw": "{{API_BASE_URL}}/sugerencias",
@@ -567,29 +634,51 @@
             }
           },
           "response": []
-        }
-      ]
-    },
-    {
-      "name": "30 – RLS (placeholder)",
-      "item": [
+        },
         {
-          "name": "Escenarios RLS (lectura/escritura) – aún no implementados",
+          "name": "POST campos vacíos → 400",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "// Placeholder: aquí se agregarán tests multiusuario para RLS (API-11, API-12).",
-                  "// En F3b V1 este request no se usa en la ejecución automatizada."
-                ],
-                "type": "text/javascript"
+                  "pm.test(\"Status 400 Bad Request\", () => {",
+                  "  pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Mensaje de campos obligatorios\", () => {",
+                  "  const json = pm.response.json();",
+                  "  pm.expect(json).to.have.property('message');",
+                  "  pm.expect(json.message).to.include('Titulo y contenido son obligatorios');",
+                  "});"
+                ]
               }
             }
           ],
           "request": {
-            "method": "GET",
-            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN_A}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"   \",\n  \"contenido\": \"   \"\n}"
+            },
             "url": {
               "raw": "{{API_BASE_URL}}/sugerencias",
               "host": ["{{API_BASE_URL}}"],

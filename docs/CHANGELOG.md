@@ -1,4 +1,4 @@
-# CHANGELOG · MVP QA – AG RBB · Buzón de Sugerencias
+# ✔ CHANGELOG · MVP QA – AG RBB · Buzón de Sugerencias
 
 `docs/CHANGELOG.md`
 
@@ -6,91 +6,120 @@ Registro técnico por fases. Fechas aproximadas usadas solo para trazabilidad.
 
 ---
 
-## 0.4.0 — F3b · Pruebas API `/api/sugerencias` (en progreso)
+## **0.4.0 — F3b · Pruebas API `/api/sugerencias` — Completado**
 
-### Artefactos incorporados
+### ✔ Artefactos incorporados
 
-- Colección Postman y environment local.
-- Script de ejecución con Newman (`test:api:f3b`).
+- Colección Postman + environment local.
+- Scripts Newman:
+  - `npm run test:api:f3b`
 
-### Documentación actualizada
+- Requests de login multiusuario y pruebas RLS.
+- Suite multiusuario A/B completa.
 
-- `docs/qa_f3b.md` (plan y casos).
-- `docs/qa_matrix.md` V3 (alineado UI + API + RLS).
+### ✔ Documentación actualizada
 
-### Cobertura lograda
+- `docs/qa_f3b.md` V3 (contratos → pruebas).
+- `docs/qa_matrix.md` V3 (UI + API + RLS alineado).
+- README actualizado (estado F3b).
 
-- GET sin sesión retorna 401 con mensaje estándar.
-- POST sin sesión retorna 401 con mensaje estándar.
-- Login multiusuario (A y B) funcional; tokens correctos.
-- POST válido retorna 201 con shape definido (sin `socio_id`).
+### ✔ Cobertura lograda (todos los API-\* completados)
 
-### Cobertura pendiente según matriz V3
+- **GET sin sesión** → 401 con mensaje estándar.
+- **POST sin sesión** → 401 con mensaje estándar.
+- **Login usuario A y B** operativo, tokens guardados en entorno.
+- **POST válido** → 201 con shape final (sin `socio_id`).
+- **GET autenticado**:
+  - Devuelve solo sugerencias del usuario.
+  - Maneja correctamente el caso **array vacío**.
 
-- GET autenticado: validar caso array vacío.
-- Validaciones 400: payload `{}` y campos solo con espacios.
-- Errores 500: forzar fallos en GET y POST.
-- RLS multiusuario: lectura A/B y protección contra inserción con `socio_id` alterado.
+- **Validaciones 400**:
+  - Payload `{}` → 400.
+  - Campos solo con espacios → 400.
+
+- **Errores 500**:
+  - GET y POST devuelven mensajes genéricos controlados.
+
+- **RLS multiusuario**:
+  - A no ve sugerencias de B.
+  - B no ve sugerencias de A.
+  - RLS INSERT evita modificar `socio_id` (inserción maliciosa rechazada).
+
+- **Suite Newman F3b** estable.
+
+La Fase F3b queda oficialmente **cerrada**.
 
 ---
 
-## 0.3.0 — F3 · Pruebas UI (Cypress) — Completado
+## **0.3.0 — F3 · Pruebas UI (Cypress) — Completado**
 
 ### Artefactos creados
 
-- Specs de autenticación, sugerencias y refresh.
+- Specs UI:
+  - Autenticación
+  - Sugerencias
+  - Refresh manual
 
 ### Cobertura validada
 
-- Login válido e inválido.
-- Ruta `/buzon` protegida.
-- Creación de sugerencias.
+- Login válido / inválido.
+- Redirección a `/buzon` sin sesión.
+- Creación de sugerencias desde UI.
 - Validación de campos vacíos.
-- Estados de carga y actualización.
-- Manejo de errores 401 y 500 en UI.
-- Flujo completo de carga inicial y refresh manual.
+- Estados visuales de carga.
+- Manejo de errores 401 y 500.
+- Ciclo completo: carga inicial → crear → refrescar.
 
 ### Documentación
 
-- `docs/qa_f3.md`.
-- `docs/qa_matrix.md` (UI completamente cubierta).
+- `docs/qa_f3.md`
+- `docs/qa_matrix.md` (sección UI completa)
 
 ---
 
-## 0.2.0 — F2 · Buzón de sugerencias — Completado
+## **0.2.0 — F2 · Buzón de sugerencias — Completado**
 
 ### Backend
 
-- Tabla `sugerencias` con RLS activo e índices aplicados.
+- Tabla `sugerencias` con RLS activo (SELECT/INSERT).
+- Índices por `socio_id` y `created_at`.
 
 ### API
 
-- Endpoint `/api/sugerencias` con GET y POST operativos.
+- `/api/sugerencias` con GET + POST estables.
 
 ### UI
 
-- Página `/buzon` con saludo al socio, formulario validado, listado propio con RLS y estados de carga/vacío.
+- Página `/buzon` integrada:
+  - Saludo personalizado
+  - Formulario validado
+  - Listado propio con RLS
+  - Estados: vacío / cargando / error
 
 ### Documentación
 
-- Modelos, rutas, API, fase F2 y QA F2.
+- Modelos, rutas, F2, QA F2.
 
 ---
 
-## 0.1.0 — F1 · Base del proyecto — Completado
+## **0.1.0 — F1 · Base del proyecto — Completado**
 
 ### Proyecto
 
-- Estructura inicial en Next.js (App Router).
+- Estructura inicial Next.js (App Router).
 - Integración Supabase (Auth + DB).
 
-### Modelo de identidad
+### Modelo identidad
 
-- Tabla `socios` con RLS.
+- Tabla `socios` + RLS.
 
-### Rutas iniciales
+### Rutas
 
-- Inicio, registro, login, buzón (placeholder) y logout.
+- Inicio
+- Registro
+- Login
+- Buzón (placeholder)
+- Logout
 
 ### Documentación
 

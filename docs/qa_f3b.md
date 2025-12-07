@@ -1,160 +1,47 @@
-# docs/qa_f3b.md — F3b (V2 limpio)
+# F3b – Pruebas API `/api/sugerencias` · V2
 
-# Pruebas API · Fase 3b — `/api/sugerencias`
+## Precondiciones
 
-La fase F3b valida directamente la API del endpoint `/api/sugerencias` usando Postman/Newman. Se revisan autenticación, validaciones, RLS y manejo de errores.
-Este documento describe lo necesario para ejecutar la fase, evitando duplicación respecto de `qa_matrix.md`.
+- Variables de entorno definidas:
+  - `SUPABASE_URL`, `SUPABASE_ANON_KEY`
+  - `API_BASE_URL`
+  - `TEST_EMAIL_A`, `TEST_PASSWORD_A`
+  - `TEST_EMAIL_B`, `TEST_PASSWORD_B`
+- Colección Postman actualizada:
+  - `10 – Login usuario A`
+  - `11 – Login usuario B`
+  - `20 – POST válido socio A → 201`
+  - `21 – POST válido socio B → 201`
+  - `22 – POST sin sesión → 401`
+  - `23 – POST 400 payload vacío`
+  - `24 – POST 400 campos inválidos`
+  - `25 – POST 500 forzado`
+  - `30 – GET sin sesión`
+  - `31 – GET válido socio A`
+  - `32 – GET válido socio B`
+  - `33 – GET shape y ocultamiento socio_id`
+  - `34 – GET RLS cruzado`
 
----
+## Flujo básico
 
-## 1. Objetivo
+1. Ejecutar **Login usuario A/B** → guarda `ACCESS_TOKEN_*`, `REFRESH_TOKEN_*`.
+2. Ejecutar los escenarios GET.
+3. Ejecutar los escenarios POST.
+4. Validar RLS lectura y escritura.
 
-Verificar que la API:
+## Criterios de aceptación (resumen)
 
-- Exija sesión (401 cuando corresponde).
-- Devuelva únicamente datos del usuario autenticado (RLS).
-- Aplique validaciones correctas (400).
-- Cree sugerencias válidas (201).
-- Maneje errores controlados (500).
-- Mantenga un shape estable (`id, titulo, contenido, estado, created_at`).
+- GET sin sesión → **401**
+- GET autenticado → **200**, array, sin `socio_id`
+- POST sin sesión → **401**
+- POST válido A/B → **201**
+- POST inválidos → **400**
+- Error forzado → **500**
+- RLS:
+  - A inserta con su propio `socio_id`
+  - B no puede leer ni escribir datos de A
+  - A no puede leer ni escribir datos de B
 
----
+## Resultados actuales
 
-## 2. Alcance
-
-### Endpoints bajo prueba
-
-- GET `/api/sugerencias`.
-- POST `/api/sugerencias`.
-
-### Fuera de alcance
-
-- Rutas UI (cubiertas en F3).
-- Endpoints `/api/rag/*`.
-- Pruebas de performance o carga.
-- Pipeline CI/CD (tratado en F4).
-
----
-
-## 3. Precondiciones
-
-### Entorno
-
-La aplicación debe estar ejecutándose en local.
-Las variables de entorno `.env.local` deben incluir URL y claves Supabase necesarias (`PUBLIC_URL`, `ANON_KEY`, `SERVICE_ROLE_KEY`).
-
-### Migraciones necesarias
-
-- Creación de tabla de sugerencias.
-- Políticas RLS.
-- Índices para optimizar lectura/escritura.
-
-### Usuarios de prueba en Supabase
-
-Usuario A: `test@example.com / Test1234!`
-Usuario B: `test.b@example.com / TestB1234!`
-Ambos con rol `socio` y estado `activo`.
-
-### Datos mínimos
-
-- Usuario A: lista vacía o con sus propias sugerencias.
-- Usuario B: al menos una sugerencia existente (para validar lectura cruzada vía RLS).
-
----
-
-## 4. Autenticación en F3b
-
-La colección Postman usa login directo contra Supabase Auth (grant_type=password).
-El flujo consiste en:
-
-1. Ejecutar login de A y B.
-2. Guardar tokens de acceso y refresh para cada usuario.
-3. Enviar los requests a la API usando `Authorization: Bearer <token>`.
-
-Este método permite validar la API sin depender aún de las cookies generadas por Next.js.
-La migración completa hacia cookies queda para una iteración futura.
-
----
-
-## 5. Colección Postman
-
-Ubicación: carpeta `postman/`.
-
-### Carpetas principales
-
-**00 – Auth / Tokens**
-Obtiene tokens de usuario A y B.
-
-**10 – GET `/api/sugerencias`**
-Incluye casos sin sesión, autenticado y (pendiente) validación A/B con RLS.
-
-**20 – POST `/api/sugerencias`**
-Implementa casos sin sesión y caso válido 201.
-Pendientes: payload inválido, campos vacíos y errores de BD/RLS.
-
-**30 – RLS**
-Escenarios para validar visibilidad entre usuarios y protección contra inserciones con `socio_id` alterado.
-
----
-
-## 6. Validaciones mínimas
-
-### GET 200
-
-- Respuesta es un array.
-- Cada objeto incluye: `id`, `titulo`, `contenido`, `estado`, `created_at`.
-- No debe exponerse `socio_id`.
-
-### POST 201
-
-- Devuelve un objeto con el mismo shape.
-- Campos `titulo` y `contenido` deben ser strings no vacíos.
-
-### Mensajes de error esperados
-
-- 401: “No hay sesión activa.”
-- 400: mensajes por payload inválido o campos faltantes.
-- 500: errores controlados en lectura o creación.
-
----
-
-## 7. Ejecución vía Newman
-
-### Requisitos
-
-- Aplicación en ejecución local.
-- Environment Postman con URLs, claves y usuarios configurados.
-- Tokens generados mediante las requests de login.
-
-La suite se ejecuta desde el script definido en package.json.
-A medida que se agregan escenarios pendientes, la colección debe actualizarse y exportarse nuevamente.
-
----
-
-## 8. Estado actual de F3b
-
-| Escenario             | Estado | Comentario                              |
-| --------------------- | ------ | --------------------------------------- |
-| GET sin sesión (401)  | ✔     | Validado en Newman                      |
-| POST sin sesión (401) | ✔     | Validado en Newman                      |
-| GET A con datos       | ✔     | Validado en Postman UI                  |
-| POST A válido (201)   | ✔     | Shape correcto                          |
-| Casos 400             | ◐      | Pendientes de agregar                   |
-| Casos 500             | ○      | Requieren forzar error controlado       |
-| RLS lectura A/B       | ○      | Pendiente, datos creados                |
-| RLS escritura         | ○      | Requiere prueba directa                 |
-| Suite Newman completa | ◐      | Depende de agregar escenarios faltantes |
-
----
-
-## 9. Checklist de cierre
-
-- [ ] Colección Postman completa y exportada.
-- [ ] Environment actualizado con valores reales.
-- [ ] Escenarios GET listos: 401, 200, vacío, con datos.
-- [ ] Escenarios POST listos: 201, 400, 401, 500.
-- [ ] Pruebas RLS en lectura y escritura con usuarios A/B.
-- [ ] Ejecución correcta de `npm run test:api:f3b`.
-- [ ] `docs/qa_matrix.md` actualizado con resultados finales.
-
----
+Todos los casos **✔** según `qa_matrix.md V2`.

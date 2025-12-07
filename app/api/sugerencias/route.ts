@@ -2,14 +2,13 @@
 // Fase 2: API para crear y listar sugerencias del socio autenticado
 
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseServerClient } from '@/lib/supabaseServerClient'
+import { supabaseFromRequest } from '@/lib/supabaseServerClient'
 
 // GET /api/sugerencias
 // Lista las sugerencias del usuario autenticado, ordenadas por created_at desc
-export async function GET(_req: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    // OJO: aquí va el await
-    const supabase = await supabaseServerClient()
+    const supabase = await supabaseFromRequest(req)
 
     const {
       data: { user },
@@ -33,7 +32,6 @@ export async function GET(_req: NextRequest) {
       )
     }
 
-    // RLS se encarga de que solo vea sus propias sugerencias
     return NextResponse.json(data ?? [], { status: 200 })
   } catch (err) {
     console.error('Error inesperado en GET /api/sugerencias:', err)
@@ -45,8 +43,7 @@ export async function GET(_req: NextRequest) {
 // Crea una nueva sugerencia para el usuario autenticado
 export async function POST(req: NextRequest) {
   try {
-    // Y aquí también: await
-    const supabase = await supabaseServerClient()
+    const supabase = await supabaseFromRequest(req)
 
     const {
       data: { user },
@@ -86,7 +83,6 @@ export async function POST(req: NextRequest) {
           socio_id: user.id,
           titulo,
           contenido
-          // estado y created_at usan defaults definidos en la BD
         }
       ])
       .select('id, titulo, contenido, estado, created_at')
