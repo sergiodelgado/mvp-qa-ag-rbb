@@ -4,8 +4,8 @@
 // - supabaseFromRequest(req): usa Authorization header (API / Postman)
 
 import { cookies } from 'next/headers'
-import type { NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -56,36 +56,46 @@ export function supabaseFromRequest(req: NextRequest) {
     req.headers.get('authorization') || req.headers.get('Authorization') || ''
 
   if (authHeader) {
-    return createClient(url, anonKey, {
-      global: {
-        headers: {
-          Authorization: authHeader
+    return {
+      supabase: createClient(url, anonKey, {
+        global: {
+          headers: {
+            Authorization: authHeader
+          }
         }
-      }
-    })
+      })
+    }
   }
 
   const cookieStore = cookies()
-
-  return createServerClient(url, anonKey, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
-      },
-      set(name: string, value: string, options: any) {
-        try {
-          cookieStore.set({ name, value, ...options })
-        } catch (err) {
-          console.error('Error setting cookie from request:', err)
-        }
-      },
-      remove(name: string, options: any) {
-        try {
-          cookieStore.set({ name, value: '', ...options, maxAge: 0 })
-        } catch (err) {
-          console.error('Error removing cookie from request:', err)
-        }
-      }
+  const response = NextResponse.next({
+    request: {
+      headers: req.headers
     }
   })
+
+  return {
+    supabase: createServerClient(url, anonKey, {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          try {
+            response.cookies.set({ name, value, ...options })
+          } catch (err) {
+            console.error('Error setting cookie from request:', err)
+          }
+        },
+        remove(name: string, options: CookieOptions) {
+          try {
+            response.cookies.set({ name, value: '', ...options, maxAge: 0 })
+          } catch (err) {
+            console.error('Error removing cookie from request:', err)
+          }
+        }
+      }
+    }),
+    response
+  }
 }

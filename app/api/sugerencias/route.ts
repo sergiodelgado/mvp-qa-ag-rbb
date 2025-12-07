@@ -8,7 +8,7 @@ import { supabaseFromRequest } from '@/lib/supabaseServerClient'
 // Lista las sugerencias del usuario autenticado, ordenadas por created_at desc
 export async function GET(req: NextRequest) {
   try {
-    const supabase = supabaseFromRequest(req)
+    const { supabase, response } = supabaseFromRequest(req)
 
     const {
       data: { user },
@@ -32,7 +32,13 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    return NextResponse.json(data ?? [], { status: 200 })
+    const res = NextResponse.json(data ?? [], { status: 200 })
+
+    response?.headers.forEach((value, key) => {
+      res.headers.set(key, value)
+    })
+
+    return res
   } catch (err) {
     console.error('Error inesperado en GET /api/sugerencias:', err)
     return NextResponse.json({ message: 'Error interno del servidor.' }, { status: 500 })
@@ -43,7 +49,7 @@ export async function GET(req: NextRequest) {
 // Crea una nueva sugerencia para el usuario autenticado
 export async function POST(req: NextRequest) {
   try {
-    const supabase = supabaseFromRequest(req)
+    const { supabase, response } = supabaseFromRequest(req)
 
     const {
       data: { user },
@@ -96,7 +102,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    return NextResponse.json(data, { status: 201 })
+    const res = NextResponse.json(data, { status: 201 })
+
+    response?.headers.forEach((value, key) => {
+      res.headers.set(key, value)
+    })
+
+    return res
   } catch (err) {
     console.error('Error inesperado en POST /api/sugerencias:', err)
     return NextResponse.json({ message: 'Error interno del servidor.' }, { status: 500 })

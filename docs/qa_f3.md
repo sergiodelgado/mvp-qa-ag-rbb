@@ -389,8 +389,6 @@ La validación estricta ocurre en F3b (API tests).
 
 ## 7. Matriz Contrato → Implementación → Pruebas
 
-## 7. Matriz Contrato → Implementación → Pruebas
-
 La matriz completa que vincula:
 
 - contratos funcionales (UI + API + RLS),
@@ -400,9 +398,7 @@ La matriz completa que vincula:
 
 se encuentra en el archivo:
 
-- `docs/qa_matrix.md`
-
-Ese archivo se considera la **fuente única de verdad** para el trazado contrato → implementación → pruebas.
+- `docs/qa_matrix.md` (fuente única de verdad, se evita duplicar la matriz aquí).
 
 ---
 

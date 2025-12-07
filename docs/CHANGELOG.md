@@ -6,6 +6,15 @@ Registro técnico por fases. Fechas aproximadas usadas solo para trazabilidad.
 
 ---
 
+## **0.5.0 — F3c · Cierre MVP QA**
+
+- **API `/api/sugerencias`**: cliente Supabase aware de request (cookies + Authorization) en route handlers, evitando 401 falsos y propagando `Set-Cookie` cuando es necesario.
+- **Tests**: colección Postman y suite Cypress verificadas para ejecutar contra la API real (login password grant + peticiones autenticadas por header).
+- **Build**: `npm run build` preparado para CI con red (Google Fonts requiere conectividad en build).
+- **Docs**: README, `docs/qa_f3.md`, `docs/qa_matrix.md` sincronizados con el estado final de F3/F3b.
+
+---
+
 ## **0.4.1 — F3b consolidado + avance F3c (API cookies + build)**
 
 - **Supabase server-side**: corrección del adapter de cookies (`cookieStore.get`) para evitar 401 falsos y mantener compatibilidad local/prod.

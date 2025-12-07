@@ -2,7 +2,7 @@
 
 **Proyecto educativo y técnico del curso Test Automation Engineer**, integrando Web + API + QA + Supabase + CI/CD (planificado).
 
-Este MVP implementa registro/login de socios, un buzón de sugerencias funcional, autenticación real con Supabase, RLS estricto, pruebas UI con Cypress (F3) y primeras pruebas API con Postman/Newman (F3b V0).
+Este MVP implementa registro/login de socios, un buzón de sugerencias funcional y autenticación real con Supabase (cookies y `Authorization`), con QA automatizado (Cypress + Postman/Newman) y documentación sincronizada.
 
 ---
 
@@ -69,25 +69,22 @@ Documentos asociados:
 
 ---
 
-### F3b — Pruebas API (Postman/Newman) (consolidado)
-
-Artefactos:
+### F3b — Pruebas API (Postman/Newman) (completado)
 
 - Colección Postman + environment local
 - Script Newman `test:api:f3b`
+- Cobertura: login A/B, GET/POST con header `Authorization: Bearer`, validaciones 400/500, RLS lectura/escritura y caso sin sesión (401).
+- Documentos asociados: `docs/qa_f3b.md`, `docs/qa_matrix.md`, `docs/CHANGELOG.md`
 
-Cobertura lograda (alineada con matriz y changelog):
+---
 
-- GET sin sesión → 401
-- POST sin sesión → 401
-- GET autenticado → 200, array (vacío o con datos propios), sin `socio_id`
-- POST válido → 201 con shape correcto (sin `socio_id`)
-- Validaciones 400 y errores 500 controlados
-- Autenticación multiusuario funcional (usuarios A y B) + RLS lectura/escritura
-- API `/api/sugerencias` acepta sesión por cookies (UI/SSR) o `Authorization: Bearer` (Postman/Newman)
+### F3c — Cierre MVP QA (completado)
 
-Documentos asociados:
-`docs/qa_f3b.md`, `docs/qa_matrix.md`, `docs/CHANGELOG.md`
+- API `/api/sugerencias` estable con sesión por header y cookies Supabase.
+- Colección Postman lista para API real (login password grant y peticiones autenticadas) + Newman.
+- Cypress estable (`cypress:run` / `cypress:open`) sobre `npm run dev`.
+- `npm run build` listo para CI con red (Google Fonts requiere conexión en build).
+- Documentación actualizada: README, `docs/qa_f3.md`, `docs/qa_matrix.md`, `docs/CHANGELOG.md`.
 
 ---
 
@@ -122,22 +119,49 @@ Todos están alineados con el modelo de sesión de Supabase + Next.js y funciona
 
 ---
 
-## 5. Rutas principales
+## 5. Cómo levantar el proyecto
 
-### F1
+### 5.1 Requisitos
 
-`/`, `/login`, `/register`, `/buzon` (placeholder), `/logout`
+- Node.js 20+ / 22+
+- Variables en `.env.local`:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+  - `SUPABASE_SERVICE_ROLE_KEY`
 
-### F2
+### 5.2 Instalar dependencias
 
-`/buzon` (UI completa)
-`/api/sugerencias` (GET/POST)
+```bash
+npm install
+```
 
-Documentación: `docs/rutas.md`, `docs/rutas_f2.md`
+### 5.3 Desarrollo
+
+```bash
+npm run dev
+```
+
+### 5.4 Build de producción
+
+```bash
+npm run build
+```
+
+> Nota: el build descarga Google Fonts (requiere acceso a red). En CI con conectividad pasa en limpio.
 
 ---
 
-## 6. Modelo de datos
+## 6. Rutas principales
+
+- F1: `/`, `/login`, `/register`, `/buzon` (placeholder), `/logout`
+- F2: `/buzon` (UI completa)
+- API: `/api/sugerencias` (GET/POST)
+
+Documentación detallada: `docs/rutas.md`, `docs/rutas_f2.md`.
+
+---
+
+## 7. Modelo de datos
 
 Tablas:
 
@@ -156,75 +180,54 @@ Documentos: modelos y API de sugerencias.
 
 ---
 
-## 7. Pruebas automatizadas
+## 8. Pruebas automatizadas
 
 ### UI — Cypress (F3)
 
-Specs:
-
-- autenticación
-- sugerencias
-- refresh / carga
-
-Resultados:
-
-- 3 specs
-- 9 tests
-- implementación UI completamente cubierta según matriz
+- Specs: `auth_buzon`, `sugerencias`, `refresh_sugerencias`.
+- Requiere app corriendo con `npm run dev`.
+- Comandos:
+  - Interactivo: `npm run cypress:open`
+  - Headless: `npm run cypress:run`
 
 ---
 
-### API — Postman / Newman (F3b)
+### API — Postman / Newman (F3b/F3c)
 
-Requisitos:
-
-- app en ejecución
-- environment configurado
-- login A/B para obtener tokens
-
-Cobertura actual:
-
-- GET sin sesión → 401
-- POST sin sesión → 401
-- POST válido → 201
-- GET autenticado y error 401 alineados con UI
-
-Pendientes:
-
-- validaciones 400
-- errores 500
-- RLS multiusuario
-- caso GET array vacío
+- Requisitos: app en ejecución, environment `postman/mvp-ag-rbb-local.postman_environment.json` con credenciales A/B y variables Supabase.
+- Cobertura: login A/B (password grant), GET/POST con header `Authorization: Bearer`, validaciones 400/500, RLS multiusuario, casos 401 sin sesión.
+- Comandos:
+  - Interactivo: abrir colección `postman/mvp-ag-rbb-buzon.postman_collection.json` en Postman.
+  - Headless: `npm run test:api:f3b`
 
 ---
 
-## 8. Carpeta `postman/`
+## 9. Carpeta `postman/`
 
 Contiene:
 
-- colección
-- environment
-- estructura por carpetas: auth, GET, POST, RLS
+- Colección
+- Environment
+- Estructura por carpetas: auth, GET, POST, RLS
 
-La colección está sincronizada con `docs/qa_f3b.md` y matriz QA.
+La colección está sincronizada con `docs/qa_f3b.md` y la matriz QA.
 
 ---
 
-## 9. Changelog
+## 10. Changelog
 
 Historial técnico localizado en `docs/CHANGELOG.md`.
-Incluye fases F1 → F3b.
 
 ---
 
-## 10. Licencia
+## 11. Licencia
 
 Proyecto educativo para AG RBB.
 No usar datos reales en entornos de prueba.
 
 ---
 
-## 11. Autor
+## 12. Autor
 
 **Sergio Carlos Delgado Martínez**
 AG RBB · 2025
