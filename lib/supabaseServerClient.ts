@@ -4,9 +4,8 @@
 // - supabaseFromRequest(req): usa Authorization header (API / Postman)
 
 import { cookies } from 'next/headers'
-import type { NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { createClient } from '@supabase/supabase-js'
+import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -22,12 +21,12 @@ if (!url || !anonKey) {
  * Lo pueden usar page.tsx, layout.tsx, etc.
  */
 export async function supabaseServerClient() {
-  const cookieStore = await cookies()
+  const cookieStore = cookies()
 
   return createServerClient(url, anonKey, {
     cookies: {
       get(name: string) {
-        return cookieStore.get(name)?.value ?? ''
+        return cookieStore.get(name)?.value
       },
       set(name: string, value: string, options: any) {
         try {
@@ -49,21 +48,46 @@ export async function supabaseServerClient() {
 
 /**
  * Cliente para route handlers que reciben Authorization: Bearer <token>
- * (caso Postman / Newman en F3b)
+ * o cookies de sesión de Supabase (caso Postman / Newman / UI)
  */
 export function supabaseFromRequest(req: NextRequest) {
   const authHeader =
     req.headers.get('authorization') || req.headers.get('Authorization') || ''
 
-  // Si no viene header, igual creamos cliente; auth.getUser() fallará y devolverá 401 en tu route.ts
-  const headers: Record<string, string> = {}
-  if (authHeader) {
-    headers['Authorization'] = authHeader
-  }
-
-  return createClient(url, anonKey, {
-    global: {
-      headers
+  const response = NextResponse.next({
+    request: {
+      headers: req.headers
     }
   })
+
+  const supabase = createServerClient(url, anonKey, {
+    cookies: {
+      get(name: string) {
+        return req.cookies.get(name)?.value
+      },
+      set(name: string, value: string, options: CookieOptions) {
+        try {
+          response.cookies.set({ name, value, ...options })
+        } catch (err) {
+          console.error('Error setting cookie from request:', err)
+        }
+      },
+      remove(name: string, options: CookieOptions) {
+        try {
+          response.cookies.set({ name, value: '', ...options, maxAge: 0 })
+        } catch (err) {
+          console.error('Error removing cookie from request:', err)
+        }
+      }
+    },
+    global: authHeader
+      ? {
+          headers: {
+            Authorization: authHeader
+          }
+        }
+      : undefined
+  })
+
+  return { supabase, response }
 }
