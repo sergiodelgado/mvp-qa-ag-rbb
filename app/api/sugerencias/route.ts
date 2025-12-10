@@ -85,7 +85,8 @@ export async function POST(req: NextRequest) {
         {
           socio_id: user.id,
           titulo,
-          contenido
+          contenido,
+          estado: 'nuevo'
         }
       ])
       .select('id, titulo, contenido, estado, created_at')
