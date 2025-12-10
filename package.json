@@ -9,7 +9,9 @@
     "lint": "eslint",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
-    "test:api:f3b": "newman run postman/mvp-ag-rbb-buzon.postman_collection.json -e postman/mvp-ag-rbb-local.postman_environment.json"
+    "test:api:f3b": "newman run postman/mvp-ag-rbb-buzon.postman_collection.json -e postman/mvp-ag-rbb-local.postman_environment.json",
+    "test:e2e": "start-server-and-test dev http://localhost:3000 \"cypress run --e2e\"",
+    "test:ci": "npm run lint && npm run build && npm run test:api:f3b && npm run test:e2e"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -27,6 +29,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "newman": "^6.2.1",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "start-server-and-test": "^2.1.3"
   }
 }
