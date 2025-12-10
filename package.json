@@ -10,8 +10,9 @@
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test:api:f3b": "newman run postman/mvp-ag-rbb-buzon.postman_collection.json -e postman/mvp-ag-rbb-local.postman_environment.json",
-    "test:e2e": "start-server-and-test dev http://localhost:3000 \"cypress run --e2e\"",
-    "test:ci": "npm run lint && npm run build && npm run test:api:f3b && npm run test:e2e"
+    "test:e2e": "cypress run --e2e",
+    "test:ci:tests": "npm run test:api:f3b && npm run test:e2e",
+    "test:ci": "npm run lint && npm run build && start-server-and-test dev http://localhost:3000 \"npm run test:ci:tests\""
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
