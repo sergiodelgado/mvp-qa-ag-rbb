@@ -1,93 +1,50 @@
 // lib/supabaseServerClient.ts
-// Clientes de Supabase para backend:
-// - supabaseServerClient(): usa cookies() (UI / SSR Next)
-// - supabaseFromRequest(req): usa Authorization header (API / Postman)
+// Cliente de Supabase para rutas app/api/* con Next.js App Router.
+// Usa cookies() de forma asíncrona (Next 16) y es tolerante a tipos de TS.
 
 import { cookies } from 'next/headers'
-import { NextResponse, type NextRequest } from 'next/server'
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import type { NextRequest } from 'next/server'
+import { createServerClient } from '@supabase/ssr'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-if (!url || !anonKey) {
-  throw new Error(
-    'Faltan variables de entorno NEXT_PUBLIC_SUPABASE_URL o NEXT_PUBLIC_SUPABASE_ANON_KEY para configurar Supabase (server).'
-  )
+type SupabaseResponse = {
+  supabase: SupabaseClient
 }
 
-/**
- * Cliente para SSR / UI (usa cookies() de Next)
- * Lo pueden usar page.tsx, layout.tsx, etc.
- */
-export async function supabaseServerClient() {
-  const cookieStore = cookies()
+export async function supabaseFromRequest(_req: NextRequest): Promise<SupabaseResponse> {
+  // En Next 16 cookies() es dinámica y devuelve un Promise en rutas app
+  const cookieStore = await cookies()
 
-  return createServerClient(url, anonKey, {
+  const supabaseUrl =
+    process.env.SUPABASE_URL ??
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??
+    ''
+
+  const supabaseAnonKey =
+    process.env.SUPABASE_ANON_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    ''
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      'SUPABASE_URL / SUPABASE_ANON_KEY o NEXT_PUBLIC_* no están configuradas'
+    )
+  }
+
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
-        return cookieStore.get(name)?.value
+        // cast a any para evitar el error de TS con Promise<ReadonlyRequestCookies>
+        return (cookieStore as any).get(name)?.value
       },
       set(name: string, value: string, options: any) {
-        try {
-          cookieStore.set({ name, value, ...options })
-        } catch (err) {
-          console.error('Error setting cookie:', err)
-        }
+        ;(cookieStore as any).set({ name, value, ...options })
       },
       remove(name: string, options: any) {
-        try {
-          cookieStore.set({ name, value: '', ...options, maxAge: 0 })
-        } catch (err) {
-          console.error('Error removing cookie:', err)
-        }
+        ;(cookieStore as any).set({ name, value: '', ...options, maxAge: 0 })
       }
     }
   })
-}
 
-/**
- * Cliente para route handlers que reciben Authorization: Bearer <token>
- * o cookies de sesión de Supabase (caso Postman / Newman / UI)
- */
-export function supabaseFromRequest(req: NextRequest) {
-  const authHeader =
-    req.headers.get('authorization') || req.headers.get('Authorization') || ''
-
-  const response = NextResponse.next({
-    request: {
-      headers: req.headers
-    }
-  })
-
-  const supabase = createServerClient(url, anonKey, {
-    cookies: {
-      get(name: string) {
-        return req.cookies.get(name)?.value
-      },
-      set(name: string, value: string, options: CookieOptions) {
-        try {
-          response.cookies.set({ name, value, ...options })
-        } catch (err) {
-          console.error('Error setting cookie from request:', err)
-        }
-      },
-      remove(name: string, options: CookieOptions) {
-        try {
-          response.cookies.set({ name, value: '', ...options, maxAge: 0 })
-        } catch (err) {
-          console.error('Error removing cookie from request:', err)
-        }
-      }
-    },
-    global: authHeader
-      ? {
-          headers: {
-            Authorization: authHeader
-          }
-        }
-      : undefined
-  })
-
-  return { supabase, response }
+  return { supabase }
 }
