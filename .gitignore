@@ -27,6 +27,10 @@ pnpm-debug.log*
 .vscode/
 .idea/
 
+# cypress
+cypress/videos/
+cypress/screenshots/
+
 # Coverage
 coverage/
 

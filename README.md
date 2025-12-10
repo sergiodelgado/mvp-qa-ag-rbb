@@ -1,234 +1,214 @@
-# README.md — MVP QA · AG RBB · Buzón de Sugerencias
+# MVP QA – AG RBB · Buzón de Sugerencias
 
-**Proyecto educativo y técnico del curso Test Automation Engineer**, integrando Web + API + QA + Supabase + CI/CD (planificado).
-
-Este MVP implementa registro/login de socios, un buzón de sugerencias funcional y autenticación real con Supabase (cookies y `Authorization`), con QA automatizado (Cypress + Postman/Newman) y documentación sincronizada.
-
----
-
-## 1. Descripción general
-
-El proyecto demuestra:
-
-- Autenticación con Supabase (cookies + RLS).
-- CRUD mínimo de sugerencias (crear + listar).
-- Arquitectura Next.js 16 (App Router) con Route Handlers.
-- Integración UI ↔ API ↔ DB con políticas RLS.
-- Pruebas UI E2E completas (F3).
-- Pruebas API iniciales con Newman (F3b V0).
-- CI/CD y Docker planificados para F4.
+Aplicación mínima validable (MVP) del módulo **Buzón de Sugerencias** para la Asociación Gremial Resonancias del Biobío (AG RBB).  
+Incluye autenticación, CRUD básico, políticas RLS Supabase y una **suite QA completa** (UI + API + CI).
 
 ---
 
-## 2. Stack tecnológico
+## 1. Objetivo del proyecto
 
-- **Frontend:** Next.js 16 + TypeScript
-- **Backend:** Route Handlers (`app/api/**`)
-- **Base de datos:** Supabase (PostgreSQL + Auth + RLS)
-- **QA UI:** Cypress (F3)
-- **QA API:** Postman + Newman (F3b)
-- **CI/CD:** GitHub Actions (F4 planificado)
-- **Contenedores:** Docker (F4 planificado)
+Garantizar una base técnica sólida para la plataforma AG RBB mediante:
 
----
+- Frontend modular (Next.js App Router)
+- Backend vía API Routes
+- Persistencia en Supabase (Postgres + RLS)
+- QA automatizado (Cypress + Postman/Newman)
+- Pipeline CI/CD reproducible en GitHub Actions
 
-## 3. Estado del MVP por fases
-
-### F1 — Base del proyecto (completado)
-
-- Next.js + Supabase configurados
-- Tabla `socios` con RLS
-- Flujo: registro, login, buzón (placeholder), logout
-- Documentación: rutas + modelo de socios
+Este MVP valida la arquitectura base para futuros módulos (gestión interna, participación ciudadana, dashboards, RAG).
 
 ---
 
-### F2 — Buzón de sugerencias (completado)
+## 2. Arquitectura
 
-- Tabla `sugerencias` con RLS
-- API GET y POST operativos
-- UI `/buzon`: saludo, validación, listado propio, mensajes de carga y estado vacío
-- Documentos: modelos, rutas, API, QA F2
+### Stack principal
 
----
+- **Next.js 16** — frontend + backend /api
+- **Supabase Postgres** — datos + autenticación
+- **RLS** — aislamiento estricto por usuario
+- **Cypress** — pruebas E2E UI
+- **Postman/Newman** — pruebas API
+- **GitHub Actions** — CI end-to-end
 
-### F3 — Pruebas UI (Cypress) (completado)
+### Diagrama resumido
 
-Cobertura UI validada:
+```
+[Next.js App Router]
+   |-- UI (/login, /register, /buzon)
+   |-- API Routes (/api/sugerencias)
+        |
+        v
+[Supabase: Auth + Postgres + RLS]
+```
 
-- Login válido e inválido
-- `/buzon` protegida
-- Creación de sugerencias válidas
-- Validación de campos vacíos
-- Estados de carga / refresh
-- Manejo de 401 en UI
-- Manejo contemplado de errores 500 (sin test dedicado)
+### Diagrama resumido
 
-Documentos asociados:
-`docs/qa_f3.md`, `docs/qa_matrix.md` sección UI
-
----
-
-### F3b — Pruebas API (Postman/Newman) (completado)
-
-- Colección Postman + environment local
-- Script Newman `test:api:f3b`
-- Cobertura: login A/B, GET/POST con header `Authorization: Bearer`, validaciones 400/500, RLS lectura/escritura y caso sin sesión (401).
-- Documentos asociados: `docs/qa_f3b.md`, `docs/qa_matrix.md`, `docs/CHANGELOG.md`
-
----
-
-### F3c — Cierre MVP QA (completado)
-
-- API `/api/sugerencias` estable con sesión por header y cookies Supabase.
-- Colección Postman lista para API real (login password grant y peticiones autenticadas) + Newman.
-- Cypress estable (`cypress:run` / `cypress:open`) sobre `npm run dev`.
-- `npm run build` listo para CI con red (Google Fonts requiere conexión en build).
-- Documentación actualizada: README, `docs/qa_f3.md`, `docs/qa_matrix.md`, `docs/CHANGELOG.md`.
+| Capa / Módulo                 | Responsabilidad Principal                                   | Herramientas / Scripts                      | Qué valida exactamente                                                                                    | Estado                     |
+| ----------------------------- | ----------------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------- |
+| **UI (E2E – Cypress)**        | Validar flujos reales de usuario en navegador               | `cypress:open`, `cypress:run`               | Login, sesiones, protección `/buzon`, crear sugerencias, validación de inputs, refresh, manejo de errores | ✔ Completado              |
+| **API Routes (Next.js)**      | Validar autenticación, reglas RLS y estructura de respuesta | Colección Postman + `test:api:f3b` (Newman) | GET/POST `/api/sugerencias`, 401 sin sesión, payloads inválidos, códigos HTTP                             | ✔ Completado              |
+| **Autenticación Supabase**    | Garantizar que session cookies + Bearer tokens funcionen    | Postman (login password grant) + UI login   | Login correcto, obtención de `access_token`, validación de sesión en API                                  | ✔ Completado              |
+| **RLS (Row-Level Security)**  | Aislar datos por usuario                                    | API tests + pruebas manuales                | Usuario A solo ve sus sugerencias; usuario B aislado                                                      | ✔ Validado funcionalmente |
+| **Build & Static Analysis**   | Asegurar que el proyecto compila y cumple estándares        | `npm run build`, `npm run lint`             | Lint sin errores, build reproducible                                                                      | ✔ Integrado               |
+| **CI/CD (Pipeline QA total)** | Ejecutar QA completo en cada push/PR                        | GitHub Actions + `npm run test:ci`          | Lint → Build → Server → Newman → Cypress                                                                  | ✔ Activo                  |
+| **Documentación QA**          | Trazabilidad y reproducibilidad del sistema de pruebas      | `docs/*.md`                                 | QA UI, QA API, Smoke test, Matrix, Changelog                                                              | ✔ Consolidado             |
 
 ---
 
-### F4 — CI/CD + Docker (planificado)
+## 3. Comandos principales
 
-- Pipeline GitHub Actions
-- Imagen Docker + ejecución en contenedor
-
-### F5 — Hardening + Demo final (planificado)
-
-- Revisión seguridad básica
-- Demo o video
-- Documentación final
-
----
-
-## 4. Integración Supabase
-
-### Variables de entorno
-
-Requiere URL pública, clave anon y clave service role.
-Los nombres están documentados en `.env.example`.
-Las claves reales no se versionan.
-
-### Clientes
-
-- **supabaseClientPublic**: cliente browser con persistencia vía cookies.
-- **supabaseServerClient**: cliente server SSR/UI.
-- **supabaseFromRequest**: cliente para route handlers; acepta **Authorization: Bearer** (Postman/Newman) o cookies de sesión (UI/SSR).
-
-Todos están alineados con el modelo de sesión de Supabase + Next.js y funcionan tanto en Supabase local como en producción.
-
----
-
-## 5. Cómo levantar el proyecto
-
-### 5.1 Requisitos
-
-- Node.js 20+ / 22+
-- Variables en `.env.local`:
-  - `NEXT_PUBLIC_SUPABASE_URL`
-  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - `SUPABASE_SERVICE_ROLE_KEY`
-
-### 5.2 Instalar dependencias
+### Desarrollo local
 
 ```bash
 npm install
-```
-
-### 5.3 Desarrollo
-
-```bash
 npm run dev
 ```
 
-### 5.4 Build de producción
+### Build + producción local
 
 ```bash
 npm run build
+npm start
 ```
 
-> Nota: el build descarga Google Fonts (requiere acceso a red). En CI con conectividad pasa en limpio.
+### QA local
+
+```bash
+npm run cypress:open     # modo interactivo
+npm run cypress:run      # headless
+npm run test:api:f3b     # Postman/Newman
+npm run test:ci          # pipeline local idéntico a GitHub Actions
+```
 
 ---
 
-## 6. Rutas principales
+## 4. Supabase
 
-- F1: `/`, `/login`, `/register`, `/buzon` (placeholder), `/logout`
-- F2: `/buzon` (UI completa)
-- API: `/api/sugerencias` (GET/POST)
+Variables requeridas:
 
-Documentación detallada: `docs/rutas.md`, `docs/rutas_f2.md`.
+```
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=   # opcional (administración)
+```
 
----
+### Clientes implementados
 
-## 7. Modelo de datos
+- **supabaseClientPublic** — UI (persistencia por cookies)
+- **supabaseServerClient** — SSR y server components
+- **supabaseFromRequest** — API Routes; acepta cookies y rechaza sin sesión (401)
 
-Tablas:
-
-- `socios`
-- `sugerencias`
-
-Ambas con RLS estricto usando `auth.uid()`.
-
-Migraciones:
-
-- creación de tabla
-- políticas RLS
-- índices
-
-Documentos: modelos y API de sugerencias.
+Todos alineados a autenticación oficial Supabase + Next.js.
 
 ---
 
-## 8. Pruebas automatizadas
+## 5. QA
 
-### UI — Cypress (F3)
+### F3 — Pruebas UI (Cypress) — completado
 
-- Specs: `auth_buzon`, `sugerencias`, `refresh_sugerencias`.
-- Requiere app corriendo con `npm run dev`.
-- Comandos:
-  - Interactivo: `npm run cypress:open`
-  - Headless: `npm run cypress:run`
+Cobertura validada:
 
----
+- Login válido/ inválido
+- Página protégida `/buzon`
+- Crear sugerencias válidas
+- Validación campos vacíos
+- Refresh del listado
+- Manejo de 401 y errores visibles en UI
 
-### API — Postman / Newman (F3b/F3c)
-
-- Requisitos: app en ejecución, environment `postman/mvp-ag-rbb-local.postman_environment.json` con credenciales A/B y variables Supabase.
-- El environment incluye valores locales de ejemplo (`SUPABASE_URL=http://localhost:54321`, `local-anon-key`, contraseñas `changeme`); reemplázalos por tus credenciales reales antes de lanzar Newman.
-- Cobertura: login A/B (password grant), GET/POST con header `Authorization: Bearer`, validaciones 400/500, RLS multiusuario, casos 401 sin sesión.
-- Comandos:
-  - Interactivo: abrir colección `postman/mvp-ag-rbb-buzon.postman_collection.json` en Postman.
-  - Headless: `npm run test:api:f3b`
+Documentos:  
+`docs/qa_f3.md`, `docs/qa_matrix.md` (UI)
 
 ---
 
-## 9. Carpeta `postman/`
+### F3b — Pruebas API (Postman/Newman) — completado
 
-Contiene:
+- Colección + environment local
+- Scripts de test para:
+  - **GET sin sesión → 401**
+  - **POST sin sesión → 401**
+- Validación del mensaje `"No hay sesión activa."`
 
-- Colección
-- Environment
-- Estructura por carpetas: auth, GET, POST, RLS
-
-La colección está sincronizada con `docs/qa_f3b.md` y la matriz QA.
-
----
-
-## 10. Changelog
-
-Historial técnico localizado en `docs/CHANGELOG.md`.
+Documentos:  
+`docs/qa_f3b.md`, `docs/qa_matrix.md` (API), `docs/CHANGELOG.md`
 
 ---
 
-## 11. Licencia
+### F3c — Consolidación QA — completado
 
-Proyecto educativo para AG RBB.
-No usar datos reales en entornos de prueba.
+- API `/api/sugerencias` estable
+- UI + API alineadas
+- `npm run build` estable para CI
+- Documentación centralizada (QA UI, QA API, smoke test, matrix)
 
 ---
 
-## 12. Autor
+## 6. CI/CD — F4 (completado)
+
+Pipeline unificado en GitHub Actions:
+
+- Lint
+- Build
+- Arranque del servidor Next.js
+- Ejecución consecutiva de Newman + Cypress
+- Inyección de secrets vía `SUPABASE_URL`, `SUPABASE_ANON_KEY`
+
+Workflow: `.github/workflows/ci-app.yml`
+
+Command principal:
+
+```bash
+npm run test:ci
+```
+
+---
+
+## 7. Estructura del proyecto
+
+```
+app/
+  api/sugerencias/route.ts
+  (login, register, buzon)
+
+lib/
+  supabaseClientPublic.ts
+  supabaseServerClient.ts
+  supabaseFromRequest.ts
+
+cypress/
+  e2e/*.cy.ts
+  support/*.ts
+postman/
+  mvp-ag-rbb-buzon.postman_collection.json
+  mvp-ag-rbb-local.postman_environment.json
+
+docs/
+  qa_f3.md
+  qa_f3b.md
+  qa_smoke_local.md
+  qa_matrix.md
+  CHANGELOG.md
+```
+
+---
+
+## 8. Roadmap siguiente (F5)
+
+- Hardening básico (headers, rate limit)
+- Revisión RLS avanzada
+- Demo final o video
+- Documentación ejecutiva
+
+---
+
+## 9. Licencia
+
+Uso interno AG RBB para fines de QA, formación y despliegues asociados a la transformación digital de la organización.
+
+---
+
+---
+
+## 10. Autor
 
 **Sergio Carlos Delgado Martínez**
 AG RBB · 2025

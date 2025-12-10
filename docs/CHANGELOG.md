@@ -6,12 +6,20 @@ Registro técnico por fases. Fechas aproximadas usadas solo para trazabilidad.
 
 ---
 
-## **0.5.0 — F3c · Cierre MVP QA**
+## **0.5.0 - F3c - Pruebas E2E UI Buzón (completadas)**
 
-- **API `/api/sugerencias`**: cliente Supabase aware de request (cookies + Authorization) en route handlers, evitando 401 falsos y propagando `Set-Cookie` cuando es necesario.
-- **Tests**: colección Postman y suite Cypress verificadas para ejecutar contra la API real (login password grant + peticiones autenticadas por header).
-- **Build**: `npm run build` preparado para CI con red (Google Fonts requiere conectividad en build).
-- **Docs**: README, `docs/qa_f3.md`, `docs/qa_matrix.md` sincronizados con el estado final de F3/F3b.
+- Se consolidan pruebas E2E de la UI del Buzón:
+  - `auth_buzon.cy.ts` → login y acceso a `/buzon`.
+  - `sugerencias.cy.ts` → creación y listado de sugerencias.
+  - `refresh_sugerencias.cy.ts` → actualización de lista.
+- Se documenta F3 en:
+  - `docs/qa_f3.md`
+  - `docs/qa_matrix.md` (sección Buzón).
+- Se agrega script CI unificado:
+  - `npm run test:ci` → lint + build + `test:api:f3b` + `cypress run --e2e`.
+- Se ignoran del repositorio las carpetas:
+  - `cypress/screenshots/`
+  - `cypress/videos/`
 
 ---
 

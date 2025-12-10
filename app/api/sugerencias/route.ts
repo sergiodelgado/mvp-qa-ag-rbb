@@ -1,14 +1,13 @@
 // app/api/sugerencias/route.ts
-// Fase 2: API para crear y listar sugerencias del socio autenticado
+// API para listar y crear sugerencias del socio autenticado
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseFromRequest } from '@/lib/supabaseServerClient'
 
 // GET /api/sugerencias
-// Lista las sugerencias del usuario autenticado, ordenadas por created_at desc
 export async function GET(req: NextRequest) {
   try {
-    const { supabase, response } = supabaseFromRequest(req)
+    const { supabase } = await supabaseFromRequest(req)
 
     const {
       data: { user },
@@ -21,7 +20,8 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabase
       .from('sugerencias')
-      .select('id, titulo, contenido, estado, created_at')
+      .select('id, socio_id, titulo, contenido, estado, created_at')
+      .eq('socio_id', user.id)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -32,13 +32,7 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const res = NextResponse.json(data ?? [], { status: 200 })
-
-    response?.headers.forEach((value, key) => {
-      res.headers.set(key, value)
-    })
-
-    return res
+    return NextResponse.json(data ?? [], { status: 200 })
   } catch (err) {
     console.error('Error inesperado en GET /api/sugerencias:', err)
     return NextResponse.json({ message: 'Error interno del servidor.' }, { status: 500 })
@@ -46,10 +40,9 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/sugerencias
-// Crea una nueva sugerencia para el usuario autenticado
 export async function POST(req: NextRequest) {
   try {
-    const { supabase, response } = supabaseFromRequest(req)
+    const { supabase } = await supabaseFromRequest(req)
 
     const {
       data: { user },
@@ -88,10 +81,11 @@ export async function POST(req: NextRequest) {
         {
           socio_id: user.id,
           titulo,
-          contenido
+          contenido,
+          estado: 'nueva'
         }
       ])
-      .select('id, titulo, contenido, estado, created_at')
+      .select('id, socio_id, titulo, contenido, estado, created_at')
       .single()
 
     if (error) {
@@ -102,13 +96,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const res = NextResponse.json(data, { status: 201 })
-
-    response?.headers.forEach((value, key) => {
-      res.headers.set(key, value)
-    })
-
-    return res
+    return NextResponse.json(data, { status: 201 })
   } catch (err) {
     console.error('Error inesperado en POST /api/sugerencias:', err)
     return NextResponse.json({ message: 'Error interno del servidor.' }, { status: 500 })
