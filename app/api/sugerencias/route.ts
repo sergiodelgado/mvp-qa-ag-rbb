@@ -1,10 +1,12 @@
 // app/api/sugerencias/route.ts
-// API para listar y crear sugerencias del socio autenticado
+// API para crear y listar sugerencias del usuario autenticado
 
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseFromRequest } from '@/lib/supabaseServerClient'
 
+// ======================
 // GET /api/sugerencias
+// ======================
 export async function GET(req: NextRequest) {
   try {
     const { supabase } = await supabaseFromRequest(req)
@@ -20,7 +22,7 @@ export async function GET(req: NextRequest) {
 
     const { data, error } = await supabase
       .from('sugerencias')
-      .select('id, socio_id, titulo, contenido, estado, created_at')
+      .select('id, titulo, contenido, estado, created_at')
       .eq('socio_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -39,7 +41,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
+// ======================
 // POST /api/sugerencias
+// ======================
 export async function POST(req: NextRequest) {
   try {
     const { supabase } = await supabaseFromRequest(req)
@@ -82,10 +86,10 @@ export async function POST(req: NextRequest) {
           socio_id: user.id,
           titulo,
           contenido,
-          estado: 'nueva'
+          estado: 'nuevo'
         }
       ])
-      .select('id, socio_id, titulo, contenido, estado, created_at')
+      .select('id, titulo, contenido, estado, created_at')
       .single()
 
     if (error) {
