@@ -6,11 +6,19 @@ import { NextRequest } from 'next/server'
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
+/**
+ * Lee y valida env vars SOLO cuando se necesita crear el cliente.
+ * Evita fallos en build-time (Next puede importar módulos durante `next build`).
+ */
+function getSupabaseEnv() {
+  const supabaseUrl = process.env.SUPABASE_URL
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('SUPABASE_URL y SUPABASE_ANON_KEY son obligatorias')
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error('SUPABASE_URL y SUPABASE_ANON_KEY son obligatorias')
+  }
+
+  return { supabaseUrl, supabaseAnonKey }
 }
 
 // ==============
@@ -18,7 +26,8 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // ==============
 
 export function supabaseClientPublic(): SupabaseClient {
-  return createBrowserClient(supabaseUrl!, supabaseAnonKey!)
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv()
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
 // ==============
@@ -26,9 +35,10 @@ export function supabaseClientPublic(): SupabaseClient {
 // ==============
 
 export async function supabaseServerClient(): Promise<SupabaseClient> {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv()
   const cookieStore = await cookies()
 
-  return createServerClient(supabaseUrl!, supabaseAnonKey!, {
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
         return (cookieStore as any).get(name)?.value
@@ -52,11 +62,12 @@ export async function supabaseServerClient(): Promise<SupabaseClient> {
 export async function supabaseFromRequest(
   req: NextRequest
 ): Promise<{ supabase: SupabaseClient }> {
+  const { supabaseUrl, supabaseAnonKey } = getSupabaseEnv()
   const cookieStore = await cookies()
 
   const authHeader = req.headers.get('authorization') ?? undefined
 
-  const supabase = createServerClient(supabaseUrl!, supabaseAnonKey!, {
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
         return (cookieStore as any).get(name)?.value
@@ -70,9 +81,7 @@ export async function supabaseFromRequest(
     },
     global: authHeader
       ? {
-          headers: {
-            Authorization: authHeader
-          }
+          headers: { Authorization: authHeader }
         }
       : undefined
   })
