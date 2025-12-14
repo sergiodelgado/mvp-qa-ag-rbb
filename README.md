@@ -5,6 +5,18 @@ Incluye autenticación, CRUD básico, políticas RLS Supabase y una **suite QA c
 
 ---
 
+## Release status
+
+**v1.0.1 — QA baseline estable**
+
+Pipeline QA totalmente reproducible (lint → build → Newman → Cypress) ejecutado en CI.  
+Pruebas E2E estabilizadas eliminando flakiness por timing y estados transitorios.  
+CI endurecido alineando tests al lifecycle real del servidor.  
+Gestión de variables de entorno Supabase robusta en build, runtime y CI.  
+Gobernanza del repo reforzada con Dependabot controlado y QA obligatorio.
+
+---
+
 ## 1. Objetivo del proyecto
 
 Garantizar una base técnica sólida para la plataforma AG RBB mediante:
@@ -43,8 +55,8 @@ Este MVP valida la arquitectura base para futuros módulos (gestión interna, pa
 
 ### Diagrama resumido
 
-| Capa / Módulo                 | Responsabilidad Principal                                   | Herramientas / Scripts                      | Qué valida exactamente                                                                                    | Estado                     |
-| ----------------------------- | ----------------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------- | -------------------------- |
+| Capa / Módulo                 | Responsabilidad Principal                                   | Herramientas / Scripts                      | Qué valida exactamente                                                                                    | Estado                    |
+| ----------------------------- | ----------------------------------------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------- |
 | **UI (E2E – Cypress)**        | Validar flujos reales de usuario en navegador               | `cypress:open`, `cypress:run`               | Login, sesiones, protección `/buzon`, crear sugerencias, validación de inputs, refresh, manejo de errores | ✔ Completado              |
 | **API Routes (Next.js)**      | Validar autenticación, reglas RLS y estructura de respuesta | Colección Postman + `test:api:f3b` (Newman) | GET/POST `/api/sugerencias`, 401 sin sesión, payloads inválidos, códigos HTTP                             | ✔ Completado              |
 | **Autenticación Supabase**    | Garantizar que session cookies + Bearer tokens funcionen    | Postman (login password grant) + UI login   | Login correcto, obtención de `access_token`, validación de sesión en API                                  | ✔ Completado              |
