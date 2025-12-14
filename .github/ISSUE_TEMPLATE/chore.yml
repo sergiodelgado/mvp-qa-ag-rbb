@@ -1,0 +1,32 @@
+name: 'Chore / Tech debt'
+description: 'Mantenimiento, refactor, tooling, deuda técnica.'
+title: 'chore: '
+labels: ['chore', 'tech-debt']
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objetivo
+      description: ¿Qué se mejora y por qué?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Propuesta
+      description: Cambios concretos, sin sobreingeniería.
+      placeholder: |
+        -
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: impacts
+    attributes:
+      label: Impacto esperado
+      options:
+        - label: Reduce riesgo (security / RLS / permisos)
+        - label: Reduce tiempo CI
+        - label: Reduce flakiness
+        - label: Mejora DX (scripts/docs)

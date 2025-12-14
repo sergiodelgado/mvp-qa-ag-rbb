@@ -1,0 +1,58 @@
+name: 'Bug'
+description: 'Fallo reproducible en UI/API/CI.'
+title: 'fix: '
+labels: ['bug']
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Descripción
+      description: ¿Qué está pasando? ¿Qué esperabas?
+      placeholder: |
+        Actual:
+        Esperado:
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidencia (logs, screenshots, links)
+      placeholder: 'Pega logs / links a Actions / capturas.'
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - UI (Next.js)
+        - API Routes
+        - Supabase/RLS
+        - Newman (API tests)
+        - Cypress (E2E)
+        - CI (GitHub Actions)
+        - Docs
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: severity
+    attributes:
+      label: Severidad
+      options:
+        - label: bloquea CI / main
+        - label: rompe funcionalidad principal
+        - label: menor / cosmético

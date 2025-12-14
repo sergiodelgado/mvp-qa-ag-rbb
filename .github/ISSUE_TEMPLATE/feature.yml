@@ -1,0 +1,51 @@
+name: 'Feature'
+description: 'Nueva funcionalidad o mejora (con criterios de aceptación).'
+title: 'feat: '
+labels: ['feat']
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto / Problema
+      description: ¿Qué problema resuelve y para quién?
+      placeholder: 'Como <usuario>, quiero <acción> para <beneficio>...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Alcance
+      description: Qué incluye y qué NO incluye.
+      placeholder: |
+        Incluye:
+        - 
+        No incluye:
+        -
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptación (testables)
+      description: Deben poder validarse en UI/API/CI.
+      placeholder: |
+        - Dado ..., cuando ..., entonces ...
+        -
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: validation
+    attributes:
+      label: Validación requerida
+      options:
+        - label: Lint + Build
+          required: true
+        - label: API (Newman)
+          required: false
+        - label: E2E (Cypress)
+          required: false
+        - label: Docs/CHANGELOG si cambia comportamiento
+          required: false
