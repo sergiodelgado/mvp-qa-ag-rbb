@@ -1,108 +1,47 @@
-// app/api/sugerencias/route.ts
-// API para crear y listar sugerencias del usuario autenticado
+// app/api/sugerencias/route.ts (La versión refactorizada)
 
-import { NextRequest, NextResponse } from 'next/server'
-import { supabaseFromRequest } from '@/lib/supabaseServerClient'
+import { NextResponse } from 'next/server';
+import { supabaseFromRequest } from '@/lib/supabaseServerClient'; // o similar
+import { crearSugerencia } from '@/lib/services/sugerencias.service'; // <--- ¡IMPORTANTE!
 
-// ======================
-// GET /api/sugerencias
-// ======================
-export async function GET(req: NextRequest) {
-  try {
-    const { supabase } = await supabaseFromRequest(req)
+// Manejador de Solicitud POST
+export async function POST(req: Request) {
+  // 1. Obtener la sesión (Responsabilidad HTTP/Auth)
+  const supabase = supabaseFromRequest(req);
+  const { data: { session } } = await supabase.auth.getSession();
 
-    const {
-      data: { user },
-      error: authError
-    } = await supabase.auth.getUser()
-
-    if (authError || !user) {
-      return NextResponse.json({ message: 'No hay sesión activa.' }, { status: 401 })
-    }
-
-    const { data, error } = await supabase
-      .from('sugerencias')
-      .select('id, titulo, contenido, estado, created_at')
-      .eq('socio_id', user.id)
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      console.error('Error al listar sugerencias:', error)
-      return NextResponse.json(
-        { message: 'Error al obtener las sugerencias.' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json(data ?? [], { status: 200 })
-  } catch (err) {
-    console.error('Error inesperado en GET /api/sugerencias:', err)
-    return NextResponse.json({ message: 'Error interno del servidor.' }, { status: 500 })
+  if (!session) {
+    // Devuelve la respuesta HTTP de error
+    return NextResponse.json({ message: 'No hay sesión activa.' }, { status: 401 });
   }
-}
 
-// ======================
-// POST /api/sugerencias
-// ======================
-export async function POST(req: NextRequest) {
+  const socioId = session.user.id;
+  let payload: any;
+
   try {
-    const { supabase } = await supabaseFromRequest(req)
+    payload = await req.json();
+  } catch (e) {
+    return NextResponse.json({ message: 'Payload JSON inválido.' }, { status: 400 });
+  }
 
-    const {
-      data: { user },
-      error: authError
-    } = await supabase.auth.getUser()
+  // 3. Llamar al Servicio (Responsabilidad de la Lógica de Negocio)
+  try {
+    // **ESTO ES LO MÁS LIMPIO:** Llama a la función de negocio pura.
+    const nuevaSugerencia = await crearSugerencia(socioId, payload);
 
-    if (authError || !user) {
-      return NextResponse.json({ message: 'No hay sesión activa.' }, { status: 401 })
+    // 4. Manejar Respuesta Exitosa
+    return NextResponse.json(nuevaSugerencia, { status: 201 });
+
+  } catch (error) {
+    // 4. Manejar la Respuesta de Error (Errores de Validación/Servicio)
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido al procesar.';
+    
+    // Si es un error de validación (del servicio), devolver 400.
+    if (errorMessage.includes('requerido') || errorMessage.includes('vacío')) {
+        return NextResponse.json({ message: errorMessage }, { status: 400 });
     }
 
-    const body = (await req.json().catch(() => null)) as {
-      titulo?: string
-      contenido?: string
-    } | null
-
-    if (!body || typeof body.titulo !== 'string' || typeof body.contenido !== 'string') {
-      return NextResponse.json(
-        { message: 'Payload inválido. Se requiere titulo y contenido.' },
-        { status: 400 }
-      )
-    }
-
-    const titulo = body.titulo.trim()
-    const contenido = body.contenido.trim()
-
-    if (!titulo || !contenido) {
-      return NextResponse.json(
-        { message: 'Titulo y contenido son obligatorios.' },
-        { status: 400 }
-      )
-    }
-
-    const { data, error } = await supabase
-      .from('sugerencias')
-      .insert([
-        {
-          socio_id: user.id,
-          titulo,
-          contenido,
-          estado: 'nuevo'
-        }
-      ])
-      .select('id, titulo, contenido, estado, created_at')
-      .single()
-
-    if (error) {
-      console.error('Error al crear sugerencia:', error)
-      return NextResponse.json(
-        { message: 'Error al crear la sugerencia.' },
-        { status: 500 }
-      )
-    }
-
-    return NextResponse.json(data, { status: 201 })
-  } catch (err) {
-    console.error('Error inesperado en POST /api/sugerencias:', err)
-    return NextResponse.json({ message: 'Error interno del servidor.' }, { status: 500 })
+    // Cualquier otro error (ej. DB interna) devolver 500
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }
