@@ -1,47 +1,62 @@
-// app/api/sugerencias/route.ts (La versión refactorizada)
+// app/api/sugerencias/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseFromRequest } from '@/lib/supabaseServerClient'; // o similar
-import { crearSugerencia } from '@/lib/services/sugerencias.service'; // <--- ¡IMPORTANTE!
+import { supabaseFromRequest } from '@/lib/supabaseServerClient';
+import { crearSugerencia } from '@/lib/services/sugerencias.service';
 
-// Manejador de Solicitud POST
-export async function POST(req: NextRequest) {
-  // 1. Obtener la sesión (Responsabilidad HTTP/Auth)
+// GET /api/sugerencias
+// Sin sesión: 401 + JSON
+export async function GET(req: NextRequest) {
   const { supabase } = await supabaseFromRequest(req);
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
-    // Devuelve la respuesta HTTP de error
+    return NextResponse.json({ message: 'No hay sesión activa.' }, { status: 401 });
+  }
+
+  // Implementación mínima: leer sugerencias del usuario autenticado.
+  // Ajusta nombre de tabla/columnas si difieren (p.ej. "sugerencias", "socio_id", "created_at").
+  const { data, error } = await supabase
+    .from('sugerencias')
+    .select('*')
+    .eq('socio_id', session.user.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return NextResponse.json({ message: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json(data ?? [], { status: 200 });
+}
+
+// POST /api/sugerencias
+export async function POST(req: NextRequest) {
+  const { supabase } = await supabaseFromRequest(req);
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
     return NextResponse.json({ message: 'No hay sesión activa.' }, { status: 401 });
   }
 
   const socioId = session.user.id;
-  let payload: any;
 
+  let payload: any;
   try {
     payload = await req.json();
-  } catch (e) {
+  } catch {
     return NextResponse.json({ message: 'Payload JSON inválido.' }, { status: 400 });
   }
 
-  // 3. Llamar al Servicio (Responsabilidad de la Lógica de Negocio)
   try {
-    // **ESTO ES LO MÁS LIMPIO:** Llama a la función de negocio pura.
     const nuevaSugerencia = await crearSugerencia(socioId, payload);
-
-    // 4. Manejar Respuesta Exitosa
     return NextResponse.json(nuevaSugerencia, { status: 201 });
-
   } catch (error) {
-    // 4. Manejar la Respuesta de Error (Errores de Validación/Servicio)
     const errorMessage = error instanceof Error ? error.message : 'Error desconocido al procesar.';
-    
-    // Si es un error de validación (del servicio), devolver 400.
+
     if (errorMessage.includes('requerido') || errorMessage.includes('vacío')) {
-        return NextResponse.json({ message: errorMessage }, { status: 400 });
+      return NextResponse.json({ message: errorMessage }, { status: 400 });
     }
 
-    // Cualquier otro error (ej. DB interna) devolver 500
     return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }
