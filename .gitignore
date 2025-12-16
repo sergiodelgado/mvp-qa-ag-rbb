@@ -36,7 +36,3 @@ coverage/
 
 # OS crap
 Thumbs.db
-
-# TypeScript build info
-tsconfig.tsbuildinfo
-*.tsbuildinfo
