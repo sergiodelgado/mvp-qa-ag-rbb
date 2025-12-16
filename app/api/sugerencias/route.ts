@@ -1,13 +1,13 @@
 // app/api/sugerencias/route.ts (La versión refactorizada)
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { supabaseFromRequest } from '@/lib/supabaseServerClient'; // o similar
 import { crearSugerencia } from '@/lib/services/sugerencias.service'; // <--- ¡IMPORTANTE!
 
 // Manejador de Solicitud POST
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   // 1. Obtener la sesión (Responsabilidad HTTP/Auth)
-  const supabase = supabaseFromRequest(req);
+  const { supabase } = await supabaseFromRequest(req);
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
