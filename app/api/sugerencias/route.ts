@@ -31,32 +31,41 @@ export async function GET(req: NextRequest) {
 
 // POST /api/sugerencias
 export async function POST(req: NextRequest) {
-  const { supabase } = await supabaseFromRequest(req);
-  const { data: { session } } = await supabase.auth.getSession();
+  const { supabase } = await supabaseFromRequest(req)
 
-  if (!session) {
-    return NextResponse.json({ message: 'No hay sesión activa.' }, { status: 401 });
-  }
-
-  const socioId = session.user.id;
-
-  let payload: any;
+  let payload: any
   try {
-    payload = await req.json();
+    payload = await req.json()
   } catch {
-    return NextResponse.json({ message: 'Payload JSON inválido.' }, { status: 400 });
+    return NextResponse.json({ message: 'Payload JSON inválido.' }, { status: 400 })
   }
 
+  // default seguro: si no viene, tratamos como anonymous (UI actual)
+  const privacyMode: 'anonymous' | 'followup' =
+    payload?.privacy_mode === 'followup' ? 'followup' : 'anonymous'
+
+  // Intentar sesión, pero NO bloquear por defecto
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
+
+  // Si pidió seguimiento, debe haber sesión
+  if (privacyMode === 'followup' && !session) {
+    return NextResponse.json({ message: 'Se requiere sesión para seguimiento.' }, { status: 401 })
+  }
+
+  const socioId: string | null = session?.user?.id ?? null
+
   try {
-    const nuevaSugerencia = await crearSugerencia(socioId, payload);
-    return NextResponse.json(nuevaSugerencia, { status: 201 });
+    const nuevaSugerencia = await crearSugerencia(socioId, payload)
+    return NextResponse.json(nuevaSugerencia, { status: 201 })
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido al procesar.';
+    const errorMessage =
+      error instanceof Error ? error.message : 'Error desconocido al procesar.'
 
     if (errorMessage.includes('requerido') || errorMessage.includes('vacío')) {
-      return NextResponse.json({ message: errorMessage }, { status: 400 });
+      return NextResponse.json({ message: errorMessage }, { status: 400 })
     }
-
-    return NextResponse.json({ message: errorMessage }, { status: 500 });
+    return NextResponse.json({ message: errorMessage }, { status: 500 })
   }
 }

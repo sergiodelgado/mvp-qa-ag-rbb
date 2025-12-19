@@ -1,0 +1,18 @@
+{
+  "generated_at": "2025-12-19T00:00:00Z",
+  "pulse": [
+    { "text": "Se aprobó el plan operativo semanal (GPP)." },
+    { "text": "Se abrió convocatoria de voluntarios para logística." },
+    { "text": "Próxima reunión: martes 20:00 (Discord)." }
+  ],
+  "opinion": {
+    "title": "Ventana de Opinión",
+    "subtitle": "¿Qué te pareció la última decisión sobre la gobernanza digital?",
+    "cta_label": "Compartir (Anónimo)"
+  },
+  "kpis": [
+    { "name": "Socios activos", "value": "48", "trend": "up", "note": "↑ En alza" },
+    { "name": "Sugerencias", "value": "12", "trend": "flat", "note": "→ Estable" },
+    { "name": "Asistencia eventos", "value": "210", "trend": "down", "note": "↓ A la baja" }
+  ]
+}

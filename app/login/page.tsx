@@ -3,9 +3,13 @@
 import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabaseBrowserClient } from '@/lib/supabaseClientPublic'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function LoginPage() {
   const router = useRouter()
+  // Si ya hay sesión, redirige a /buzon automáticamente
+  useAuth({ redirectIfAuth: true })
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)

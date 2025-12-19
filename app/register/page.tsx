@@ -1,30 +1,22 @@
 // app/register/page.tsx
 'use client'
 
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabaseBrowserClient } from '@/lib/supabaseClientPublic' // usa alias @/
+import { supabaseBrowserClient } from '@/lib/supabaseClientPublic'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function RegisterPage() {
   const router = useRouter()
+  // Si ya hay sesión, redirige a /buzon automáticamente
+  useAuth({ redirectIfAuth: true })
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [nombre, setNombre] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-
-  useEffect(() => {
-    const checkSession = async () => {
-      const { data } = await supabaseBrowserClient.auth.getSession()
-      if (data.session) {
-        // Si ya está autenticado, no tiene sentido registrar otro usuario → a /buzon
-        router.replace('/buzon')
-      }
-    }
-
-    checkSession()
-  }, [router])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
