@@ -1,0 +1,20 @@
+# docker-compose.local.yml · Ejecutar MVP QA – Buzón de Sugerencias en Docker
+# Usa Supabase cloud con las mismas variables que tu entorno local.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Estos valores se toman del entorno donde ejecutes docker compose
+        SUPABASE_URL: ${SUPABASE_URL}
+        SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    container_name: mvp-qa-agrbb-buzon
+    ports:
+      - '3000:3000'
+    environment:
+      # Las mismas variables se inyectan en runtime dentro del contenedor
+      SUPABASE_URL: ${SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${SUPABASE_ANON_KEY}
+    restart: unless-stopped
