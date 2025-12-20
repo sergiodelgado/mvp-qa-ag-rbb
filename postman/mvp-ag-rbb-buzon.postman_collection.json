@@ -209,20 +209,20 @@
 			"name": "20 – POST /api/sugerencias",
 			"item": [
 				{
-					"name": "POST sin sesión → 401",
+					"name": "POST anónimo → 201",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"pm.test(\"POST /api/sugerencias sin sesión responde 401\", function () {",
-									"  pm.response.to.have.status(401);",
+									"pm.test(\"POST /api/sugerencias anónimo responde 201\", function () {",
+									"  pm.response.to.have.status(201);",
 									"});",
 									"",
-									"pm.test(\"Body indica que no hay sesión activa (POST)\", function () {",
+									"pm.test(\"Body contiene la sugerencia creada\", function () {",
 									"  const json = pm.response.json();",
 									"  pm.expect(json).to.be.an(\"object\");",
-									"  pm.expect(json.message).to.eql(\"No hay sesión activa.\");",
+									"  pm.expect(json.titulo).to.exist;",
 									"});",
 									""
 								],
@@ -246,7 +246,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"titulo\": \"Sugerencia sin sesión\",\n  \"contenido\": \"No debería crearse.\" \n}"
+							"raw": "{\n  \"titulo\": \"Sugerencia anónima\",\n  \"contenido\": \"Esta es una sugerencia de prueba sin sesión activa.\",\n  \"privacy_mode\": \"anonymous\"\n}"
 						},
 						"url": {
 							"raw": "{{API_BASE_URL}}/sugerencias",
