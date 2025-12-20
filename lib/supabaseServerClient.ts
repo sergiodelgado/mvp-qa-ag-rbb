@@ -88,3 +88,23 @@ export async function supabaseFromRequest(
 
   return { supabase }
 }
+
+// ==============
+// CLIENTE ADMIN (SERVICE ROLE) - SOLO SERVER
+// ==============
+
+export function supabaseAdminClient(): SupabaseClient {
+  const supabaseUrl = process.env.SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY son obligatorias para operaciones admin')
+  }
+
+  return createServerClient(supabaseUrl, supabaseServiceKey, {
+    cookies: {
+      getAll() { return [] },
+      setAll() {}
+    }
+  })
+}

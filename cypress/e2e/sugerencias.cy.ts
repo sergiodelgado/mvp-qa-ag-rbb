@@ -12,6 +12,14 @@ function loginAndGoToBuzon() {
 
   cy.url().should('include', '/buzon')
   cy.contains(/buzón de sugerencias/i)
+  
+  // Esperar a que la página se estabilice después del login
+  // El componente BuzonPage carga el perfil y sugerencias asincrónicamente
+  // Esperamos a que el formulario esté completamente listo
+  cy.get('#titulo').should('be.visible')
+  cy.get('#contenido').should('be.visible')
+  // Pequeña pausa adicional para asegurar que todos los efectos terminaron
+  cy.wait(500)
 }
 
 describe('Buzón de Sugerencias - flujo básico', () => {

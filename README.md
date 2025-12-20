@@ -41,6 +41,21 @@ Este MVP valida la arquitectura base para futuros módulos (gestión interna, pa
 [Supabase: Auth + Postgres + RLS]
 ```
 
+### 2.1 Detalles de Implementación (v2.0.0)
+
+**Arquitectura de Hooks Custom:**
+- **`useAuth`**: Centraliza la lógica de sesión y protección de rutas.
+  - *Prevent Redirect Loop*: Usa `useRef` para evitar re-renders infinitos durante redirecciones (crítico para estabilidad de Cypress).
+  - *Modos*: `requireAuth` (protección) y `redirectIfAuth` (para login/register).
+- **`useSugerencias`**: Abstrae la capa de datos.
+  - *Optimistic Updates*: UI reactiva inmediata antes de confirmación del servidor.
+  - *Data Integrity*: Tipado estricto alineado con Base de Datos.
+
+**Sistema de Tipos:**
+- Tipos centralizados en `lib/types/` (ej: `sugerencias.ts`) para evitar duplicación y discrepancias entre Hooks y UI.
+
+---
+
 ### Diagrama resumido
 
 | Capa / Módulo                 | Responsabilidad Principal                                   | Herramientas / Scripts                      | Qué valida exactamente                                                                                    | Estado                     |

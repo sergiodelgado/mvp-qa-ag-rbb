@@ -1,57 +1,52 @@
 'use client'
 export const dynamic = 'force-dynamic'
-import { useEffect, useState, FormEvent } from 'react'
+import { useEffect, useState, FormEvent, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabaseBrowserClient } from '@/lib/supabaseClientPublic'
-
-type Sugerencia = {
-  id: string
-  titulo: string
-  contenido: string
-  estado: string
-  created_at: string
-}
+import { useSugerencias } from '@/hooks/useSugerencias'
+import { useAuth } from '@/hooks/useAuth'
+import type { Sugerencia } from '@/lib/types/sugerencia'
 
 export default function BuzonPage() {
   const router = useRouter()
-  const [loadingUser, setLoadingUser] = useState(true)
+  const { user, loading: loadingAuth } = useAuth({ requireAuth: true })
+  const { sugerencias, setSugerencias, isLoading: loadingSugerencias, error: sugerenciasError, refresh: fetchSugerencias } = useSugerencias()
+  
+  const [loadingProfile, setLoadingProfile] = useState(false)
   const [perfilNombre, setPerfilNombre] = useState<string | null>(null)
   const [perfilEmail, setPerfilEmail] = useState<string | null>(null)
   const [perfilError, setPerfilError] = useState<string | null>(null)
-
-  const [sugerencias, setSugerencias] = useState<Sugerencia[]>([])
-  const [loadingSugerencias, setLoadingSugerencias] = useState(false)
-  const [sugerenciasError, setSugerenciasError] = useState<string | null>(null)
 
   const [titulo, setTitulo] = useState('')
   const [contenido, setContenido] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  // 1) Verificar sesión y cargar perfil + sugerencias
+  const hasLoadedProfileFor = useRef<string | null>(null)
+
+  // Cargar perfil desde tabla socios cuando user está disponible
   useEffect(() => {
-    const supabase = supabaseBrowserClient
+    let isMounted = true
 
-    async function loadUserAndData() {
-      setLoadingUser(true)
-      setPerfilError(null)
+    async function loadProfile() {
+      if (!user) return
 
-      const {
-        data: { user },
-        error: authError
-      } = await supabase.auth.getUser()
-
-      if (authError || !user) {
-        router.replace('/login')
+      // Solo cargar si no hemos cargado para este usuario
+      if (hasLoadedProfileFor.current === user.id) {
         return
       }
 
-      // Cargar perfil desde socios
-      const { data: perfil, error: perfilErr } = await supabase
+      setLoadingProfile(true)
+      setPerfilError(null)
+
+      const { data: perfil, error: perfilErr } = await supabaseBrowserClient
         .from('socios')
         .select('nombre, email')
         .eq('id', user.id)
         .single()
+
+      // Solo actualizar estado si el componente sigue montado
+      if (!isMounted) return
 
       if (perfilErr) {
         // Fallback: usar email de Auth si algo falla con socios
@@ -63,45 +58,19 @@ export default function BuzonPage() {
         setPerfilEmail(perfil?.email ?? user.email ?? '')
       }
 
-      setLoadingUser(false)
-
-      // Después de tener sesión válida, cargar sugerencias
-      await fetchSugerencias()
+      setLoadingProfile(false)
+      hasLoadedProfileFor.current = user.id
     }
 
-    loadUserAndData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router])
+    loadProfile()
 
-  async function fetchSugerencias() {
-    try {
-      setLoadingSugerencias(true)
-      setSugerenciasError(null)
-
-      const res = await fetch('/api/sugerencias', {
-        method: 'GET'
-      })
-
-      if (res.status === 401) {
-        // Sesión caducada o inexistente
-        router.replace('/login')
-        return
-      }
-
-      if (!res.ok) {
-        setSugerenciasError('No se pudieron cargar las sugerencias.')
-        return
-      }
-
-      const data: Sugerencia[] = await res.json()
-      setSugerencias(data)
-    } catch (err) {
-      console.error('Error al traer sugerencias:', err)
-      setSugerenciasError('Error inesperado al cargar las sugerencias.')
-    } finally {
-      setLoadingSugerencias(false)
+    // Cleanup: prevenir updates si componente se desmonta antes de completar fetch
+    return () => {
+      isMounted = false
     }
-  }
+  }, [user])
+
+
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -147,7 +116,7 @@ export default function BuzonPage() {
 
       // Sugerencia creada OK
       const creada: Sugerencia = await res.json()
-      // La agregamos al inicio de la lista para ver el cambio al tiro
+      // Agregar optimistically a la lista
       setSugerencias((prev) => [creada, ...prev])
 
       setTitulo('')
@@ -164,7 +133,7 @@ export default function BuzonPage() {
     router.push('/logout')
   }
 
-  if (loadingUser) {
+  if (loadingAuth || loadingProfile) {
     return (
       <main className="min-h-screen flex items-center justify-center">
         <p className="text-lg">Cargando buzón...</p>
