@@ -7,13 +7,20 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
     "test:api:f3b": "newman run postman/mvp-ag-rbb-buzon.postman_collection.json -e postman/mvp-ag-rbb-local.postman_environment.json",
     "test:e2e": "cypress run --e2e",
     "test:e2e:local": "start-server-and-test dev http://localhost:3000 \"npm run test:e2e\"",
     "test:ci:tests": "npm run test:api:f3b && npm run test:e2e",
-    "test:ci": "npm run lint && npm run build && start-server-and-test dev http://localhost:3000 \"npm run test:ci:tests\""
+    "test:ci": "npm run lint && npm run build && start-server-and-test dev http://localhost:3000 \"npm run test:ci:tests\"",
+    "audit:quick": "node scripts/audit.js --profile quick",
+    "audit:standard": "node scripts/audit.js --profile standard",
+    "audit:full": "node scripts/audit.js --profile full",
+    "audit:security": "node scripts/audit.js --profile security",
+    "audit:rls": "node scripts/checks/rls.js",
+    "test:integration": "npm run test:api:f3b && npm run test:e2e"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
