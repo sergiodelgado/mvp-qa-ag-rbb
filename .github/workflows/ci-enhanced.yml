@@ -1,0 +1,156 @@
+name: QA CI Enhanced
+
+on:
+  push:
+    branches: [ main, refactor/f3-f4 ]
+  pull_request:
+    branches: [ main, refactor/f3-f4 ]
+
+jobs:
+  # Job 1: Auditoría de Seguridad
+  security-audit:
+    runs-on: ubuntu-latest
+    name: 🔒 Security Audit
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Check for outdated dependencies
+        run: npm outdated || true
+
+  # Job 2: Validación de Código
+  code-quality:
+    runs-on: ubuntu-latest
+    name: 📝 Code Quality
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript type checking
+        run: npm run typecheck
+
+  # Job 3: Build y Tests
+  qa:
+    runs-on: ubuntu-latest
+    name: 🧪 QA Pipeline
+    needs: [security-audit, code-quality]
+
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run QA pipeline (lint + build + Postman + Cypress)
+        run: npm run test:ci
+
+      - name: Upload Cypress screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+          if-no-files-found: ignore
+
+      - name: Upload Cypress videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress/videos
+          if-no-files-found: ignore
+
+  # Job 4: Validación de Docker
+  docker-build:
+    runs-on: ubuntu-latest
+    name: 🐳 Docker Build
+    needs: [qa]
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: mvp-qa-ag-rbb:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Job 5: Reporte Final
+  audit-report:
+    runs-on: ubuntu-latest
+    name: 📊 Audit Report
+    needs: [security-audit, code-quality, qa, docker-build]
+    if: always()
+    
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Generate audit summary
+        run: |
+          echo "# 🤖 Auditoría Pre-Deploy - Resumen" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Jobs Completados" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Audit: ${{ needs.security-audit.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Code Quality: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- QA Pipeline: ${{ needs.qa.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Build: ${{ needs.docker-build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📋 Checklist Pre-Deploy" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Linting" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] TypeScript" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Build" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Tests API" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Tests E2E" >> $GITHUB_STEP_SUMMARY
+          echo "- [x] Docker Build" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY

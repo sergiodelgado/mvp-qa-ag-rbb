@@ -39,3 +39,10 @@ supabase/.temp/
 
 # OS crap
 Thumbs.db
+
+# IDE artifacts & conversation history
+.agent/
+
+# TypeScript build artifacts
+*.tsbuildinfo
+tsconfig.tsbuildinfo

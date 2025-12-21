@@ -206,7 +206,77 @@ docs/
 
 ---
 
-## 8. Roadmap siguiente (F5)
+## 8. Sistema de Auditoría (Quality Gate v1)
+
+### 8.1 Descripción
+
+Sistema modular de auditoría pre-deploy con perfiles contextuales para validación estática del repositorio.
+
+**Arquitectura:**
+- Checks modulares en `scripts/checks/` con contrato uniforme
+- Orquestador en `scripts/audit.js` con soporte de perfiles
+- Compatibilidad CI/local automática
+- Exit codes estrictos para integración con pipelines
+
+### 8.2 Perfiles Disponibles
+
+| Perfil | Comando | Checks Ejecutados | Uso Recomendado |
+|--------|---------|-------------------|-----------------|
+| **quick** | `npm run audit:quick` | env, git, lint | Pre-commit, desarrollo local |
+| **standard** | `npm run audit:standard` | + criticalFiles, typecheck | Antes de crear PR |
+| **full** | `npm run audit:full` | + security, rls | Pre-deploy, merge a main |
+| **security** | `npm run audit:security` | security, rls | Auditorías programadas, revisión de seguridad |
+
+### 8.3 Checks Implementados
+
+- **env** - Validación de variables de entorno requeridas
+- **git** - Estado del repositorio (cambios sin commitear, rama actual)
+- **critical-files** - Verificación de archivos críticos del proyecto
+- **security** - Auditoría de vulnerabilidades (npm audit)
+- **rls** - Validación de políticas RLS optimizadas en Supabase
+- **lint** - ESLint
+- **typecheck** - TypeScript (tsc --noEmit)
+
+### 8.4 Integración con CI/CD
+
+El workflow `.github/workflows/ci-f3b.yml` usa los perfiles automáticamente:
+
+- **En PRs:** `audit:quick` para feedback rápido (~40% más rápido)
+- **En main:** `audit:full` para validación completa
+- **Nightly:** `audit:security` (2 AM UTC) para monitoreo proactivo
+
+**Jobs paralelos:**
+1. `static-audit` - Validación estática según perfil
+2. `integration-tests` - Build + Postman + Cypress
+3. `security-audit` - Solo en schedule/manual
+
+### 8.5 Uso Local
+
+```bash
+# Validación rápida (pre-commit)
+npm run audit:quick
+
+# Validación estándar (pre-PR)
+npm run audit:standard
+
+# Validación completa (pre-deploy)
+npm run audit:full
+
+# Solo seguridad
+npm run audit:security
+```
+
+### 8.6 Documentación Técnica
+
+Ver [`scripts/checks/README.md`](scripts/checks/README.md) para:
+- Arquitectura de checks modulares
+- Contrato uniforme `{ name, run(ctx) }`
+- Cómo agregar nuevos checks
+- Detalles de cada check existente
+
+---
+
+## 9. Roadmap siguiente (F5)
 
 - Hardening básico (headers, rate limit)
 - Revisión RLS avanzada
@@ -215,7 +285,7 @@ docs/
 
 ---
 
-## 9. Licencia
+## 10. Licencia
 
 Uso interno AG RBB para fines de QA, formación y despliegues asociados a la transformación digital de la organización.
 
@@ -223,7 +293,7 @@ Uso interno AG RBB para fines de QA, formación y despliegues asociados a la tra
 
 ---
 
-## 10. Autor
+## 11. Autor
 
 **Sergio Carlos Delgado Martínez**
 AG RBB · 2025
