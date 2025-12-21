@@ -153,7 +153,7 @@ export default function OpinionWindowEmbedded() {
 
                     {/* Review (UI pre-envío) */}
                     {stage === 'review' && (
-                        <div className={styles.panel}>
+                        <div className={styles.innerPanel}>
                             <div className={styles.panelTitle}>Antes de enviar</div>
                             <p className={styles.subtle}>
                                 Modo: {mode === 'anonymous' ? 'Anónimo' : 'Con seguimiento'}

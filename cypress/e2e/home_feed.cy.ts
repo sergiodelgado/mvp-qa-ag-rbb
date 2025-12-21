@@ -1,13 +1,15 @@
 describe('Home Feed UI', () => {
   beforeEach(() => {
     cy.visit('/')
+    // Disable scroll animations for testing to ensure elements are visible
+    cy.get('main').invoke('addClass', 'noAnimations')
   })
 
   it('renderiza título y secciones principales', () => {
-    // Secciones
-    cy.contains('Pulso del gremio').should('be.visible')
-    cy.contains('Ventana de Opinión').should('be.visible')
-    cy.contains('Indicadores clave').should('be.visible')
+    // Secciones - scroll into view to ensure visibility
+    cy.contains('Pulso del gremio').scrollIntoView().should('be.visible')
+    cy.contains('Opinión del Ecosistema').scrollIntoView().should('be.visible')
+    cy.contains('Indicadores clave').scrollIntoView().should('be.visible')
   })
 
   it('Ventana de Opinión: flujo completo con envío exitoso (MOCK)', () => {
@@ -18,7 +20,7 @@ describe('Home Feed UI', () => {
     }).as('postSugerencia')
 
     // 1. Estado inicial: botón Opinar visible
-    cy.contains('button', 'Opinar').should('be.visible').click()
+    cy.contains('button', 'Opinar').scrollIntoView().should('be.visible').click()
 
     // 2. Estado expandido: textarea visible
     cy.get('textarea').should('be.visible')
@@ -28,7 +30,7 @@ describe('Home Feed UI', () => {
     cy.contains('button', 'Continuar').should('not.be.disabled').click()
 
     // 4. Estado Review
-    cy.contains('Antes de enviar').should('be.visible')
+    cy.contains('Antes de enviar').scrollIntoView().should('be.visible')
     cy.contains('deseo enviar sugerencias anónimas').should('be.visible')
 
     // 5. Enviar -> Esperar Mock
@@ -36,8 +38,8 @@ describe('Home Feed UI', () => {
     cy.wait('@postSugerencia')
 
     // 6. Estado Final -> Mensaje de éxito
-    cy.contains('Recibido').should('be.visible')
-    cy.contains('Gracias por tu aporte').should('be.visible')
+    cy.contains('Recibido').scrollIntoView().should('be.visible')
+    cy.contains('Gracias por tu aporte').scrollIntoView().should('be.visible')
 
     // 7. Reset -> Escribir otra
     cy.contains('button', 'Escribir otra').click()
@@ -67,17 +69,17 @@ describe('Home Feed UI', () => {
       body: { message: 'Se requiere sesión para seguimiento.' }
     }).as('postError401')
 
-    cy.contains('button', 'Opinar').click()
+    cy.contains('button', 'Opinar').scrollIntoView().click()
     // Elegir modo 'Con seguimiento'
     cy.contains('button', 'Con seguimiento').click()
     cy.get('textarea').type('Intento de seguimiento sin login.')
     cy.contains('button', 'Continuar').click()
     
-    cy.contains('Modo: Con seguimiento').should('be.visible')
+    cy.contains('Modo: Con seguimiento').scrollIntoView().should('be.visible')
     cy.contains('button', 'Enviar').click()
     cy.wait('@postError401')
 
     // Mensaje UX amigable
-    cy.contains('Para seguimiento necesitas iniciar sesión.').should('be.visible')
+    cy.contains('Para seguimiento necesitas iniciar sesión.').scrollIntoView().should('be.visible')
   })
 })

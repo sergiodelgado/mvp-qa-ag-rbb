@@ -44,38 +44,50 @@ export default async function HomePage() {
 
   return (
     <main className={styles.main}>
-      {/* Pulso */}
-      <details open className={styles.block}>
-        <summary className={styles.summary}>Pulso del gremio</summary>
-        <ul className={styles.list}>
-          {feed.pulse?.map((item, i) => (
-            <li key={i} className={styles.listItem}>
-              {item.text}
-            </li>
-          ))}
-        </ul>
-        <div className={styles.meta}>Actualizado: {formatDateTime(feed.generated_at)}</div>
-      </details>
+      {/* Scene 1: Pulso */}
+      <section className={styles.scene}>
+        <div className={styles.panel}>
+          <details open className={styles.block}>
+            <summary className={styles.summary}>Pulso del gremio</summary>
+            <ul className={styles.list}>
+              {feed.pulse?.map((item, i) => (
+                <li key={i} className={styles.listItem}>
+                  {item.text}
+                </li>
+              ))}
+            </ul>
+            <div className={styles.meta}>Actualizado: {formatDateTime(feed.generated_at)}</div>
+          </details>
+        </div>
+      </section>
 
-      {/* Ventana de opinión (UI por ahora) */}
-      <details open className={styles.block}>
-        <summary className={styles.summary}>{feed.opinion?.title ?? 'Ventana de Opinión'}</summary>
-        <OpinionWindowEmbedded />
-      </details>
+      {/* Scene 2: Ventana de opinión */}
+      <section className={styles.scene}>
+        <div className={styles.panel}>
+          <details open className={styles.block}>
+            <summary className={styles.summary}>{feed.opinion?.title ?? 'Ventana de Opinión'}</summary>
+            <OpinionWindowEmbedded />
+          </details>
+        </div>
+      </section>
 
-      {/* Indicadores */}
-      <details open className={styles.block}>
-        <summary className={styles.summary}>Indicadores clave</summary>
-        <ul className={styles.kpiList}>
-          {feed.kpis?.map((k, i) => (
-            <li key={i} className={styles.kpiItem}>
-              <span className={styles.kpiName}>{k.name}</span>
-              <span className={styles.kpiValue}>{k.value}</span>
-              <span className={trendClass(k.trend)}>{k.note ?? ''}</span>
-            </li>
-          ))}
-        </ul>
-      </details>
+      {/* Scene 3: Indicadores */}
+      <section className={styles.scene}>
+        <div className={styles.panel}>
+          <details open className={styles.block}>
+            <summary className={styles.summary}>Indicadores clave</summary>
+            <ul className={styles.kpiList}>
+              {feed.kpis?.map((k, i) => (
+                <li key={i} className={styles.kpiItem}>
+                  <span className={styles.kpiName}>{k.name}</span>
+                  <span className={styles.kpiValue}>{k.value}</span>
+                  <span className={trendClass(k.trend)}>{k.note ?? ''}</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </div>
+      </section>
 
       <footer className={styles.footer}>
         <span className={styles.subtle}>Resumen semanal</span>

@@ -1,18 +1,75 @@
 {
-  "generated_at": "2025-12-19T00:00:00Z",
+  "generated_at": "2025-12-20T17:00:00-03:00",
   "pulse": [
-    { "text": "Se aprobó el plan operativo semanal (GPP)." },
-    { "text": "Se abrió convocatoria de voluntarios para logística." },
-    { "text": "Próxima reunión: martes 20:00 (Discord)." }
+    {
+      "text": "RBB A.G. — Asociación Gremial Resonancias del Biobío (sin fines de lucro)."
+    },
+    {
+      "text": "Objeto: promover el desarrollo y protección de actividades de música electrónica, artes sonoras y disciplinas afines (Biobío y territorio nacional)."
+    },
+    {
+      "text": "Domicilio legal: Camilo Henríquez 2856, depto. 105, Concepción, Región del Biobío."
+    },
+    {
+      "text": "Marco: DL 2.757 · Ley 20.500 · Código Civil. Duración: indefinida."
+    },
+    {
+      "text": "Estado actual: fase de organización, levantamiento de información y puesta en marcha del sistema digital de participación (este MVP)."
+    }
   ],
   "opinion": {
-    "title": "Ventana de Opinión",
-    "subtitle": "¿Qué te pareció la última decisión sobre la gobernanza digital?",
-    "cta_label": "Compartir (Anónimo)"
+    "title": "Opinión del Ecosistema",
+    "subtitle": "Canal de opinión y propuestas para socios y comunidad. Puedes enviar anónimo o con seguimiento.",
+    "cta_label": "Enviar opinión"
   },
   "kpis": [
-    { "name": "Socios activos", "value": "48", "trend": "up", "note": "↑ En alza" },
-    { "name": "Sugerencias", "value": "12", "trend": "flat", "note": "→ Estable" },
-    { "name": "Asistencia eventos", "value": "210", "trend": "down", "note": "↓ A la baja" }
+    {
+      "name": "Representación y Redes",
+      "value": "En preparación",
+      "trend": "flat",
+      "note": "Intereses ante organismos + articulación con actores (Art. 6.a, 6.d)."
+    },
+    {
+      "name": "Información y Diagnóstico",
+      "value": "En levantamiento",
+      "trend": "up",
+      "note": "Datos sectoriales para decisiones e incidencia (Art. 6.e)."
+    },
+    {
+      "name": "Formación y Desarrollo",
+      "value": "En diseño",
+      "trend": "flat",
+      "note": "Formación, asesoría y servicios técnicos (Art. 6.b, 6.c)."
+    },
+    {
+      "name": "Cuidado e Inclusión",
+      "value": "En revisión",
+      "trend": "flat",
+      "note": "Espacios seguros, bienestar y reducción de riesgos (Art. 6.g, 6.i)."
+    },
+    {
+      "name": "Sostenibilidad y Territorio",
+      "value": "En preparación",
+      "trend": "flat",
+      "note": "Prácticas responsables + identidad territorial (Art. 6.h, 6.k)."
+    },
+    {
+      "name": "Memoria y Archivo",
+      "value": "En preparación",
+      "trend": "flat",
+      "note": "Registro del ecosistema cultural común (Art. 6.j)."
+    },
+    {
+      "name": "Difusión y Proyección",
+      "value": "En preparación",
+      "trend": "flat",
+      "note": "Promoción del trabajo de asociados dentro/fuera (Art. 6.l)."
+    },
+    {
+      "name": "Sostenibilidad institucional",
+      "value": "Patrimonio en conformación",
+      "trend": "flat",
+      "note": "Fuentes: cuotas, donaciones, proyectos, eventos compatibles (Art. 7)."
+    }
   ]
 }
