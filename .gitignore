@@ -34,5 +34,8 @@ cypress/screenshots/
 # Coverage
 coverage/
 
+# Supabase
+supabase/.temp/
+
 # OS crap
 Thumbs.db
