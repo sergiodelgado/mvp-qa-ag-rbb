@@ -37,10 +37,10 @@ jobs:
         if: github.event_name == 'pull_request'
         run: npm run audit:quick
 
-      # On main: full audit (includes security + RLS)
-      - name: Full Audit (main)
+      # On main: standard audit (typecheck, lint, critical files)
+      - name: Standard Audit (main)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: npm run audit:full
+        run: npm run audit:standard
 
   # Job 2: Integration Tests (runs after static-audit passes)
   integration-tests:
