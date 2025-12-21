@@ -18,9 +18,27 @@ async function run(ctx = {}) {
   ];
 
   const envPath = path.join(process.cwd(), '.env.local');
+  const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
   
+  // En CI: validar desde process.env
+  if (isCI) {
+    log.info('Entorno CI detectado - validando desde process.env');
+    
+    const missing = requiredVars.filter(varName => !process.env[varName]);
+    
+    if (missing.length > 0) {
+      log.error(`Variables faltantes en CI: ${missing.join(', ')}`);
+      return false;
+    }
+    
+    log.success('Todas las variables de entorno están configuradas en CI');
+    return true;
+  }
+  
+  // En local: validar desde .env.local
   if (!fs.existsSync(envPath)) {
     log.error('Archivo .env.local no encontrado');
+    log.info('Tip: Copia .env.example a .env.local y completa las variables');
     return false;
   }
 
@@ -31,7 +49,7 @@ async function run(ctx = {}) {
   });
 
   if (missing.length > 0) {
-    log.error(`Variables faltantes: ${missing.join(', ')}`);
+    log.error(`Variables faltantes en .env.local: ${missing.join(', ')}`);
     return false;
   }
 
