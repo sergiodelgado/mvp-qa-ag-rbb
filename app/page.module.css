@@ -22,6 +22,12 @@
   padding-top: 4vh;
 }
 
+/* Disable scroll effects when in test mode */
+.main.noAnimations .scene {
+  min-height: auto;
+  padding-top: 1rem;
+}
+
 /* Panel: se pega al top mientras su scene está en viewport */
 .panel {
   position: sticky;
@@ -33,9 +39,18 @@
   will-change: opacity, transform;
 }
 
+/* Disable sticky positioning and animations in test mode */
+.main.noAnimations .panel {
+  position: relative;
+  top: auto;
+  opacity: 1 !important;
+  transform: none !important;
+  animation: none !important;
+}
+
 /* Mejora progresiva: scroll-driven animations SOLO si el navegador las soporta */
 @supports (animation-timeline: view()) {
-  .panel {
+  .main:not(.noAnimations) .panel {
     animation: panelFadeScale linear both;
     animation-timeline: view();
     animation-range: entry 0% cover 30%;
