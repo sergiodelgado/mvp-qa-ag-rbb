@@ -30,11 +30,11 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
-    "@types/node": "25.0.2",
-    "@types/react": "19.2.7",
-    "cypress": "^15.7.0",
+    "@types/node": "25.0.6",
+    "@types/react": "19.2.8",
+    "cypress": "^15.8.2",
     "eslint": "^9.39.1",
-    "eslint-config-next": "16.0.10",
+    "eslint-config-next": "16.1.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "newman": "^6.2.1",
