@@ -49,13 +49,17 @@ export default async function HomePage() {
         <div className={styles.panel}>
           <details open className={styles.block}>
             <summary className={styles.summary}>Pulso del gremio</summary>
-            <ul className={styles.list}>
-              {feed.pulse?.map((item, i) => (
-                <li key={i} className={styles.listItem}>
-                  {item.text}
-                </li>
-              ))}
-            </ul>
+            {feed.pulse?.length > 0 ? (
+              <ul className={styles.list}>
+                {feed.pulse.map((item, i) => (
+                  <li key={i} className={styles.listItem}>
+                    {item.text}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.emptyState}>Contenido próximamente.</p>
+            )}
             <div className={styles.meta}>Actualizado: {formatDateTime(feed.generated_at)}</div>
           </details>
         </div>
@@ -64,7 +68,7 @@ export default async function HomePage() {
       {/* Scene 2: Ventana de opinión */}
       <section className={styles.scene}>
         <div className={styles.panel}>
-          <details open className={styles.block}>
+          <details open className={styles.blockPrimary}>
             <summary className={styles.summary}>{feed.opinion?.title ?? 'Ventana de Opinión'}</summary>
             <OpinionWindowEmbedded />
           </details>
@@ -76,15 +80,28 @@ export default async function HomePage() {
         <div className={styles.panel}>
           <details open className={styles.block}>
             <summary className={styles.summary}>Indicadores clave</summary>
-            <ul className={styles.kpiList}>
-              {feed.kpis?.map((k, i) => (
-                <li key={i} className={styles.kpiItem}>
-                  <span className={styles.kpiName}>{k.name}</span>
-                  <span className={styles.kpiValue}>{k.value}</span>
-                  <span className={trendClass(k.trend)}>{k.note ?? ''}</span>
-                </li>
-              ))}
-            </ul>
+            {feed.kpis?.length > 0 ? (
+              <ul className={styles.kpiList}>
+                {feed.kpis.map((k, i) => {
+                  const isBadge = /^En\s/i.test(k.value)
+                  return (
+                    <li key={i} className={styles.kpiItem}>
+                      <span className={styles.kpiName}>{k.name}</span>
+                      <span className={styles.kpiValue}>
+                        {isBadge ? (
+                          <span className={styles.badge}>{k.value}</span>
+                        ) : (
+                          k.value
+                        )}
+                      </span>
+                      <span className={trendClass(k.trend)}>{k.note ?? ''}</span>
+                    </li>
+                  )
+                })}
+              </ul>
+            ) : (
+              <p className={styles.emptyState}>Contenido próximamente.</p>
+            )}
           </details>
         </div>
       </section>
