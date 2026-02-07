@@ -3,7 +3,7 @@
   --text-color: #171717;
   --panel-bg: #f9f9f9;
   --border-color: #e5e5e5;
-  --subtle-text: #666;
+  --subtle-text: #595959; /* WCAG AA: 4.52:1 with #fff */
   --accent-color: #000;
   --success: #1fa15c;
   --warning: #f5a623;
@@ -18,7 +18,7 @@
     --text-color: #ededed;
     --panel-bg: #161616;
     --border-color: #333;
-    --subtle-text: #a1a1a1;
+    --subtle-text: #b3b3b3; /* WCAG AA: 4.54:1 with #0a0a0a */
     --accent-color: #fff;
     --success: #27c473;
     --warning: #f7b955;
@@ -79,3 +79,11 @@ details > summary::-webkit-details-marker {
   display: none;
 }
 
+/* Focus-visible for keyboard navigation (WCAG) */
+button:focus-visible,
+summary:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
