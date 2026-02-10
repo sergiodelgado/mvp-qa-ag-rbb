@@ -43,16 +43,16 @@ alter table public.socios enable row level security;
 create policy "socios_select_own"
 on public.socios
 for select
-using (auth.uid() = id);
+using ((select auth.uid()) = id);
 
 -- 3) Política: insertar tu propio perfil
 create policy "socios_insert_own"
 on public.socios
 for insert
-with check (auth.uid() = id);
+with check ((select auth.uid()) = id);
 
 -- 4) Política: actualizar tu propio perfil
 create policy "socios_update_own"
 on public.socios
 for update
-using (auth.uid() = id);
+using ((select auth.uid()) = id);
