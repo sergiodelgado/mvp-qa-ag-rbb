@@ -16,13 +16,13 @@ alter table public.sugerencias
 create policy "sugerencias_select_own"
 on public.sugerencias
 for select
-using ( auth.uid() = socio_id );
+using ( (select auth.uid()) = socio_id );
 
 -- Política: cada usuario solo puede insertar sugerencias para sí mismo
 create policy "sugerencias_insert_own"
 on public.sugerencias
 for insert
-with check ( auth.uid() = socio_id );
+with check ( (select auth.uid()) = socio_id );
 
 -- NOTA:
 --  - No se definen políticas de UPDATE/DELETE en Fase 2 (solo create + read).
