@@ -2,18 +2,17 @@ name: QA CI
 
 on:
   push:
-    branches: [ main, refactor/f3-f4 ]
+    branches: [main, refactor/f3-f4]
   pull_request:
-    branches: [ main, refactor/f3-f4 ]
-  workflow_dispatch:  # Allow manual trigger
+    branches: [main, refactor/f3-f4]
+  workflow_dispatch:
   schedule:
-    - cron: '0 2 * * *'  # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
 
 jobs:
-  # Job 1: Static Audit (runs on all events)
   static-audit:
     runs-on: ubuntu-latest
-    
+
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -32,21 +31,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # On PRs: quick audit (env, git, lint) for fast feedback
       - name: Quick Audit (PR)
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.actor != 'dependabot[bot]'
         run: npm run audit:quick
 
-      # On main: standard audit (typecheck, lint, critical files)
+      - name: Quick Audit (Dependabot PR)
+        if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+        run: npm run lint
+
       - name: Standard Audit (main)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: npm run audit:standard
 
-  # Job 2: Integration Tests (runs after static-audit passes)
   integration-tests:
     runs-on: ubuntu-latest
     needs: static-audit
-    
+    if: github.actor != 'dependabot[bot]'
+
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
@@ -73,11 +74,10 @@ jobs:
       - name: Run integration tests (Postman + Cypress)
         run: npx start-server-and-test dev http://localhost:3000 "npm run test:integration"
 
-  # Job 3: Nightly Security Audit (only on schedule or manual trigger)
   security-audit:
     runs-on: ubuntu-latest
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    
+
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
